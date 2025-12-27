@@ -2,16 +2,6 @@ package picrosssolver
 
 import "strings"
 
-type Hints struct {
-	row [][]int
-	col [][]int
-}
-
-func NewHints(row, col [][]int) Hints {
-	h := Hints{row, col}
-	return h
-}
-
 type Cell uint8
 
 const (
@@ -71,12 +61,12 @@ func (b Board) Print() []string {
 	return ss
 }
 
-func Solve(hints Hints) Board {
-	w, h := len(hints.col), len(hints.row)
+func Solve(rowHints, colHints [][]int) Board {
+	w, h := len(colHints), len(rowHints)
 	b := newBoard(h, w)
 	for i := range h {
-		if len(hints.row[i]) == 1 {
-			switch hints.row[i][0] {
+		if len(rowHints[i]) == 1 {
+			switch rowHints[i][0] {
 			case h:
 				b.paintLine(LineRow, i, CellBlack)
 			case 0:
@@ -85,8 +75,8 @@ func Solve(hints Hints) Board {
 		}
 	}
 	for i := range w {
-		if len(hints.col[i]) == 1 {
-			switch hints.col[i][0] {
+		if len(colHints[i]) == 1 {
+			switch colHints[i][0] {
 			case w:
 				b.paintLine(LineColumn, i, CellBlack)
 			case 0:
