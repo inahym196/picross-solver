@@ -23,16 +23,14 @@ func (c Cell) String() string {
 	}
 }
 
-type Board struct {
-	cells [][]Cell
-}
+type Board [][]Cell
 
 func newBoard(h, w int) Board {
-	cells := make([][]Cell, h)
+	board := make(Board, h)
 	for i := range h {
-		cells[i] = make([]Cell, w)
+		board[i] = make([]Cell, w)
 	}
-	return Board{cells}
+	return board
 }
 
 type LineType uint8
@@ -45,22 +43,22 @@ const (
 func (b *Board) paintLine(typ LineType, num int, cell Cell) {
 	switch typ {
 	case LineRow:
-		for i := range b.cells[num] {
-			b.cells[num][i] = cell
+		for i := range (*b)[num] {
+			(*b)[num][i] = cell
 		}
 	case LineColumn:
-		for i := range len(b.cells) {
-			b.cells[i][num] = cell
+		for i := range len(*b) {
+			(*b)[i][num] = cell
 		}
 	}
 }
 
 func (b Board) Print() []string {
 	var ss []string
-	for i := range b.cells {
+	for i := range b {
 		var s strings.Builder
-		for j := range b.cells[i] {
-			switch b.cells[i][j] {
+		for j := range b[i] {
+			switch b[i][j] {
 			case CellBlack:
 				s.WriteString("#")
 			case CellWhite:
