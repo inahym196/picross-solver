@@ -102,6 +102,41 @@ func (l Line) IsAllCells(c Cell) bool {
 	return true
 }
 
+type Rule interface {
+	Apply(line Line)
+}
+
+type FillCompleteRule struct{}
+
+func (r *FillCompleteRule) Apply(line Line) {
+	if len(line.Hints) != 1 {
+		return
+	}
+
+	hint := line.Hints[0]
+	switch {
+	case hint == len(line.Cells):
+		if !line.IsAllCells(CellBlack) {
+			updated := filledCells(len(line.Cells), CellBlack)
+			line.WriteBack(updated)
+		}
+	case hint == 0:
+		if !line.IsAllCells(CellWhite) {
+			updated := filledCells(len(line.Cells), CellWhite)
+			line.WriteBack(updated)
+		}
+	}
+}
+
+type Solver struct {
+	rules []Rule
+}
+
+func NewSolver() Solver {
+	rules := []Rule{&FillCompleteRule{}}
+	return Solver{rules}
+}
+
 func Lines(board Board, rowHints, colHints [][]int) []Line {
 	var lines []Line
 
@@ -129,29 +164,13 @@ func Lines(board Board, rowHints, colHints [][]int) []Line {
 	return lines
 }
 
-func ApplyRule1(line Line) {
-	if len(line.Hints) != 1 {
-		return
-	}
-
-	hint := line.Hints[0]
-	switch {
-	case hint == len(line.Cells):
-		updated := filledCells(len(line.Cells), CellBlack)
-		line.WriteBack(updated)
-		return
-	case hint == 0:
-		updated := filledCells(len(line.Cells), CellWhite)
-		line.WriteBack(updated)
-		return
-	}
-}
-
-func Solve(game Game) Board {
+func (s Solver) ApplyOnce(game Game) Board {
 	board := DeepCopyBoard(game.board)
 	lines := Lines(board, game.rowHints, game.colHints)
-	for _, line := range lines {
-		ApplyRule1(line)
+	for _, rule := range s.rules {
+		for _, line := range lines {
+			rule.Apply(line)
+		}
 	}
 	return board
 }
