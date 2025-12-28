@@ -12,11 +12,14 @@ func TestMain(t *testing.T) {
 		rowHints := [][]int{{0}, {2}}
 		colHints := [][]int{{1}, {1}}
 		game := picrosssolver.NewGame(rowHints, colHints)
-		solve := picrosssolver.Solve(*game).Print()
+		solver := picrosssolver.NewSolver()
 		expected := []string{
 			"__",
 			"##",
 		}
+
+		solve := solver.ApplyOnce(*game).Print()
+
 		if !reflect.DeepEqual(solve, expected) {
 			t.Errorf("expected %v, got %v", expected, solve)
 		}
@@ -25,11 +28,14 @@ func TestMain(t *testing.T) {
 		rowHints := [][]int{{1}, {1}}
 		colHints := [][]int{{2}, {0}}
 		game := picrosssolver.NewGame(rowHints, colHints)
-		solve := picrosssolver.Solve(*game).Print()
+		solver := picrosssolver.NewSolver()
 		expected := []string{
 			"#_",
 			"#_",
 		}
+
+		solve := solver.ApplyOnce(*game).Print()
+
 		if !reflect.DeepEqual(solve, expected) {
 			t.Errorf("expected %v, got %v", expected, solve)
 		}
