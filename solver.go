@@ -33,10 +33,10 @@ func filledCells(length int, c Cell) []Cell {
 
 type Board [][]Cell
 
-func newBoard(h, w int) Board {
-	board := make(Board, h)
-	for i := range h {
-		board[i] = make([]Cell, w)
+func newBoard(height, width int) Board {
+	board := make(Board, height)
+	for i := range height {
+		board[i] = make([]Cell, width)
 	}
 	return board
 }
