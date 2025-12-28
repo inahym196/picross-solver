@@ -72,7 +72,19 @@ func (b Board) Print() []string {
 	return ss
 }
 
-func Solve(rowHints, colHints [][]int) Board {
+type Game struct {
+	board    Board
+	rowHints [][]int
+	colHints [][]int
+}
+
+func NewGame(rowHints, colHints [][]int) *Game {
+	b := newBoard(len(rowHints), len(colHints))
+	return &Game{b, rowHints, colHints}
+}
+
+func Solve(game Game) Board {
+	rowHints, colHints := game.rowHints, game.colHints
 	w, h := len(colHints), len(rowHints)
 	b := newBoard(h, w)
 	for i := range h {
