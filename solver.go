@@ -23,6 +23,14 @@ func (c Cell) String() string {
 	}
 }
 
+func filledCells(length int, c Cell) []Cell {
+	line := make([]Cell, length)
+	for i := range line {
+		line[i] = c
+	}
+	return line
+}
+
 type Board [][]Cell
 
 func newBoard(h, w int) Board {
@@ -39,19 +47,6 @@ const (
 	LineRow LineType = iota
 	LineColumn
 )
-
-func (b *Board) paintLine(typ LineType, num int, cell Cell) {
-	switch typ {
-	case LineRow:
-		for i := range (*b)[num] {
-			(*b)[num][i] = cell
-		}
-	case LineColumn:
-		for i := range len(*b) {
-			(*b)[i][num] = cell
-		}
-	}
-}
 
 func (b Board) Print() []string {
 	var ss []string
@@ -72,6 +67,15 @@ func (b Board) Print() []string {
 	return ss
 }
 
+func DeepCopyBoard(src Board) Board {
+	dst := make(Board, len(src))
+	for i := range src {
+		dst[i] = make([]Cell, len(src[i]))
+		copy(dst[i], src[i])
+	}
+	return dst
+}
+
 type Game struct {
 	board    Board
 	rowHints [][]int
@@ -83,29 +87,71 @@ func NewGame(rowHints, colHints [][]int) *Game {
 	return &Game{b, rowHints, colHints}
 }
 
+type Line struct {
+	Cells     []Cell
+	Hints     []int
+	WriteBack func([]Cell)
+}
+
+func (l Line) IsAllCells(c Cell) bool {
+	for _, cell := range l.Cells {
+		if cell != c {
+			return false
+		}
+	}
+	return true
+}
+
+func Lines(board Board, rowHints, colHints [][]int) []Line {
+	var lines []Line
+
+	for i := range board {
+		lines = append(lines, Line{
+			Cells: board[i],
+			Hints: rowHints[i],
+			WriteBack: func(updated []Cell) {
+				copy(board[i], updated)
+			},
+		})
+	}
+	for i := range len(board[0]) {
+		col := make([]Cell, len(board))
+		lines = append(lines, Line{
+			Cells: col,
+			Hints: colHints[i],
+			WriteBack: func(updated []Cell) {
+				for r := range board {
+					board[r][i] = updated[r]
+				}
+			},
+		})
+	}
+	return lines
+}
+
+func ApplyRule1(line Line) {
+	if len(line.Hints) != 1 {
+		return
+	}
+
+	hint := line.Hints[0]
+	switch {
+	case hint == len(line.Cells):
+		updated := filledCells(len(line.Cells), CellBlack)
+		line.WriteBack(updated)
+		return
+	case hint == 0:
+		updated := filledCells(len(line.Cells), CellWhite)
+		line.WriteBack(updated)
+		return
+	}
+}
+
 func Solve(game Game) Board {
-	rowHints, colHints := game.rowHints, game.colHints
-	w, h := len(colHints), len(rowHints)
-	b := newBoard(h, w)
-	for i := range h {
-		if len(rowHints[i]) == 1 {
-			switch rowHints[i][0] {
-			case h:
-				b.paintLine(LineRow, i, CellBlack)
-			case 0:
-				b.paintLine(LineRow, i, CellWhite)
-			}
-		}
+	board := DeepCopyBoard(game.board)
+	lines := Lines(board, game.rowHints, game.colHints)
+	for _, line := range lines {
+		ApplyRule1(line)
 	}
-	for i := range w {
-		if len(colHints[i]) == 1 {
-			switch colHints[i][0] {
-			case w:
-				b.paintLine(LineColumn, i, CellBlack)
-			case 0:
-				b.paintLine(LineColumn, i, CellWhite)
-			}
-		}
-	}
-	return b
+	return board
 }
