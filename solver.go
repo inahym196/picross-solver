@@ -137,7 +137,7 @@ func NewSolver() Solver {
 	return Solver{rules}
 }
 
-func Lines(board Board, rowHints, colHints [][]int) []Line {
+func (s Solver) ExtractLines(board Board, rowHints, colHints [][]int) []Line {
 	var lines []Line
 
 	for i := range board {
@@ -166,7 +166,7 @@ func Lines(board Board, rowHints, colHints [][]int) []Line {
 
 func (s Solver) ApplyOnce(game Game) Board {
 	board := DeepCopyBoard(game.board)
-	lines := Lines(board, game.rowHints, game.colHints)
+	lines := s.ExtractLines(board, game.rowHints, game.colHints)
 	for _, rule := range s.rules {
 		for _, line := range lines {
 			rule.Apply(line)
