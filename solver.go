@@ -41,13 +41,6 @@ func newBoard(height, width int) Board {
 	return board
 }
 
-type LineType uint8
-
-const (
-	LineRow LineType = iota
-	LineColumn
-)
-
 func (b Board) Print() []string {
 	var ss []string
 	for i := range b {
