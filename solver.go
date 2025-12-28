@@ -10,6 +10,19 @@ const (
 	CellBlack
 )
 
+func (c Cell) String() string {
+	switch c {
+	case CellUnknown:
+		return "CellUnknown"
+	case CellBlack:
+		return "CellBlack"
+	case CellWhite:
+		return "CellWhite"
+	default:
+		panic("invalid cell")
+	}
+}
+
 type Board struct {
 	cells [][]Cell
 }
