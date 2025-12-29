@@ -11,8 +11,7 @@ func (r *ExtractMatchRule) Deduce(line Line) []Cell {
 		return nil
 	}
 
-	hint := line.Hints[0]
-	if hint == len(line.Cells) && !line.IsAllCells(CellBlack) {
+	if line.Hints[0] == len(line.Cells) {
 		return filledCells(len(line.Cells), CellBlack)
 	}
 	return nil
@@ -25,8 +24,7 @@ func (r *ZeroHintRule) Deduce(line Line) []Cell {
 		return nil
 	}
 
-	hint := line.Hints[0]
-	if hint == 0 && !line.IsAllCells(CellWhite) {
+	if line.Hints[0] == 0 {
 		return filledCells(len(line.Cells), CellWhite)
 	}
 	return nil
