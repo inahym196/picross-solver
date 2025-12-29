@@ -1,6 +1,9 @@
 package picrosssolver
 
-import "strings"
+import (
+	"reflect"
+	"strings"
+)
 
 type Cell uint8
 
@@ -86,15 +89,6 @@ type Line struct {
 	WriteBack func([]Cell)
 }
 
-func (l Line) IsAllCells(c Cell) bool {
-	for _, cell := range l.Cells {
-		if cell != c {
-			return false
-		}
-	}
-	return true
-}
-
 type Solver struct {
 	rules []Rule
 }
@@ -139,7 +133,8 @@ func (s Solver) ApplyOnce(game Game) Board {
 	lines := s.ExtractLines(board, game.rowHints, game.colHints)
 	for _, rule := range s.rules {
 		for _, line := range lines {
-			if updated := rule.Deduce(line); updated != nil {
+			updated := rule.Deduce(line)
+			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
 				line.WriteBack(updated)
 			}
 		}
