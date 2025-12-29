@@ -99,25 +99,31 @@ type Rule interface {
 	Apply(line Line)
 }
 
-type FillCompleteRule struct{}
+type ExtractMatchRule struct{}
 
-func (r *FillCompleteRule) Apply(line Line) {
+func (r *ExtractMatchRule) Apply(line Line) {
 	if len(line.Hints) != 1 {
 		return
 	}
 
 	hint := line.Hints[0]
-	switch {
-	case hint == len(line.Cells):
-		if !line.IsAllCells(CellBlack) {
-			updated := filledCells(len(line.Cells), CellBlack)
-			line.WriteBack(updated)
-		}
-	case hint == 0:
-		if !line.IsAllCells(CellWhite) {
-			updated := filledCells(len(line.Cells), CellWhite)
-			line.WriteBack(updated)
-		}
+	if hint == len(line.Cells) && !line.IsAllCells(CellBlack) {
+		updated := filledCells(len(line.Cells), CellBlack)
+		line.WriteBack(updated)
+	}
+}
+
+type ZeroHintRule struct{}
+
+func (r *ZeroHintRule) Apply(line Line) {
+	if len(line.Hints) != 1 {
+		return
+	}
+
+	hint := line.Hints[0]
+	if hint == 0 && !line.IsAllCells(CellWhite) {
+		updated := filledCells(len(line.Cells), CellWhite)
+		line.WriteBack(updated)
 	}
 }
 
@@ -126,7 +132,10 @@ type Solver struct {
 }
 
 func NewSolver() Solver {
-	rules := []Rule{&FillCompleteRule{}}
+	rules := []Rule{
+		&ExtractMatchRule{},
+		&ZeroHintRule{},
+	}
 	return Solver{rules}
 }
 
