@@ -1,35 +1,35 @@
 package picrosssolver
 
 type Rule interface {
-	Apply(line Line)
+	Deduce(line Line) []Cell
 }
 
 type ExtractMatchRule struct{}
 
-func (r *ExtractMatchRule) Apply(line Line) {
+func (r *ExtractMatchRule) Deduce(line Line) []Cell {
 	if len(line.Hints) != 1 {
-		return
+		return nil
 	}
 
 	hint := line.Hints[0]
 	if hint == len(line.Cells) && !line.IsAllCells(CellBlack) {
-		updated := filledCells(len(line.Cells), CellBlack)
-		line.WriteBack(updated)
+		return filledCells(len(line.Cells), CellBlack)
 	}
+	return nil
 }
 
 type ZeroHintRule struct{}
 
-func (r *ZeroHintRule) Apply(line Line) {
+func (r *ZeroHintRule) Deduce(line Line) []Cell {
 	if len(line.Hints) != 1 {
-		return
+		return nil
 	}
 
 	hint := line.Hints[0]
 	if hint == 0 && !line.IsAllCells(CellWhite) {
-		updated := filledCells(len(line.Cells), CellWhite)
-		line.WriteBack(updated)
+		return filledCells(len(line.Cells), CellWhite)
 	}
+	return nil
 }
 
 // 黒と白の配置が一意に決まる

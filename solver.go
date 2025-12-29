@@ -139,7 +139,9 @@ func (s Solver) ApplyOnce(game Game) Board {
 	lines := s.ExtractLines(board, game.rowHints, game.colHints)
 	for _, rule := range s.rules {
 		for _, line := range lines {
-			rule.Apply(line)
+			if updated := rule.Deduce(line); updated != nil {
+				line.WriteBack(updated)
+			}
 		}
 	}
 	return board
