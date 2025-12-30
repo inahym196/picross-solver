@@ -6,7 +6,7 @@ type Rule interface {
 
 type ExtractMatchRule struct{}
 
-func (r *ExtractMatchRule) Deduce(hc HintedCells) []Cell {
+func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {
 	if len(hc.Hints) == 1 && hc.Hints[0] == len(hc.Cells) {
 		return filledCells(len(hc.Cells), CellBlack)
 	}
@@ -15,7 +15,7 @@ func (r *ExtractMatchRule) Deduce(hc HintedCells) []Cell {
 
 type ZeroHintRule struct{}
 
-func (r *ZeroHintRule) Deduce(hc HintedCells) []Cell {
+func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
 	if len(hc.Hints) == 1 && hc.Hints[0] == 0 {
 		return filledCells(len(hc.Cells), CellWhite)
 	}
