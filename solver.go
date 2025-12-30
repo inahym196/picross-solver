@@ -83,10 +83,24 @@ func NewGame(rowHints, colHints [][]int) *Game {
 	return &Game{b, rowHints, colHints}
 }
 
+type LineKind uint8
+
+const (
+	LineKindRow LineKind = iota
+	LineKindColumn
+)
+
+type HintedCells struct {
+	Cells []Cell
+	Hints []int
+}
+
+func NewHintedCells(cells []Cell, hints []int) HintedCells { return HintedCells{cells, hints} }
+
 type Line struct {
-	Cells     []Cell
-	Hints     []int
-	WriteBack func([]Cell)
+	Kind  LineKind
+	Index int
+	Cells HintedCells
 }
 
 type Solver struct {
@@ -106,26 +120,36 @@ func (s Solver) ExtractLines(board Board, rowHints, colHints [][]int) []Line {
 
 	for i := range board {
 		lines = append(lines, Line{
-			Cells: board[i],
-			Hints: rowHints[i],
-			WriteBack: func(updated []Cell) {
-				copy(board[i], updated)
-			},
+			Kind:  LineKindRow,
+			Index: i,
+			Cells: NewHintedCells(board[i], rowHints[i]),
 		})
 	}
-	for i := range len(board[0]) {
-		col := make([]Cell, len(board))
+	for i := range board[0] {
+		col := make([]Cell, len(board[0]))
+		for row := range board {
+			col[row] = board[row][i]
+		}
 		lines = append(lines, Line{
-			Cells: col,
-			Hints: colHints[i],
-			WriteBack: func(updated []Cell) {
-				for r := range board {
-					board[r][i] = updated[r]
-				}
-			},
+			Kind:  LineKindColumn,
+			Index: i,
+			Cells: NewHintedCells(col, colHints[i]),
 		})
 	}
 	return lines
+}
+
+func (s Solver) ApplyLine(board Board, line Line, cells []Cell) {
+	switch line.Kind {
+	case LineKindRow:
+		copy(board[line.Index], cells)
+	case LineKindColumn:
+		for row := range board {
+			board[row][line.Index] = cells[row]
+		}
+	default:
+		panic("invalid LineKind")
+	}
 }
 
 func (s Solver) ApplyOnce(game Game) Board {
@@ -133,9 +157,9 @@ func (s Solver) ApplyOnce(game Game) Board {
 	lines := s.ExtractLines(board, game.rowHints, game.colHints)
 	for _, rule := range s.rules {
 		for _, line := range lines {
-			updated := rule.Deduce(line)
+			updated := rule.Deduce(line.Cells)
 			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
-				line.WriteBack(updated)
+				s.ApplyLine(board, line, updated)
 			}
 		}
 	}
