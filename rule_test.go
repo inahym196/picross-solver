@@ -62,3 +62,28 @@ func TestMinimumSpacingRule(t *testing.T) {
 		})
 	}
 }
+
+func TestOverlapFillRule(t *testing.T) {
+	tests := []struct {
+		length   int
+		hints    []int
+		expected []Cell
+	}{
+		{3, []int{2}, []Cell{U, B, U}},
+		{4, []int{3}, []Cell{U, B, B, U}},
+		{5, []int{2, 1}, []Cell{U, B, U, U, U}},
+		{6, []int{2, 2}, []Cell{U, B, U, U, B, U}},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := newHintedCells(tt.length, tt.hints)
+
+			got := OverlapFillRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+
+}
