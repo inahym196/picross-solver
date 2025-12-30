@@ -1,23 +1,23 @@
 package picrosssolver
 
 type Rule interface {
-	Deduce(line Line) []Cell
+	Deduce(HintedCells) []Cell
 }
 
 type ExtractMatchRule struct{}
 
-func (r *ExtractMatchRule) Deduce(line Line) []Cell {
-	if len(line.Hints) == 1 && line.Hints[0] == len(line.Cells) {
-		return filledCells(len(line.Cells), CellBlack)
+func (r *ExtractMatchRule) Deduce(hc HintedCells) []Cell {
+	if len(hc.Hints) == 1 && hc.Hints[0] == len(hc.Cells) {
+		return filledCells(len(hc.Cells), CellBlack)
 	}
 	return nil
 }
 
 type ZeroHintRule struct{}
 
-func (r *ZeroHintRule) Deduce(line Line) []Cell {
-	if len(line.Hints) == 1 && line.Hints[0] == 0 {
-		return filledCells(len(line.Cells), CellWhite)
+func (r *ZeroHintRule) Deduce(hc HintedCells) []Cell {
+	if len(hc.Hints) == 1 && hc.Hints[0] == 0 {
+		return filledCells(len(hc.Cells), CellWhite)
 	}
 	return nil
 }
