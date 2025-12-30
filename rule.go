@@ -7,11 +7,7 @@ type Rule interface {
 type ExtractMatchRule struct{}
 
 func (r *ExtractMatchRule) Deduce(line Line) []Cell {
-	if len(line.Hints) != 1 {
-		return nil
-	}
-
-	if line.Hints[0] == len(line.Cells) {
+	if len(line.Hints) == 1 && line.Hints[0] == len(line.Cells) {
 		return filledCells(len(line.Cells), CellBlack)
 	}
 	return nil
@@ -20,11 +16,7 @@ func (r *ExtractMatchRule) Deduce(line Line) []Cell {
 type ZeroHintRule struct{}
 
 func (r *ZeroHintRule) Deduce(line Line) []Cell {
-	if len(line.Hints) != 1 {
-		return nil
-	}
-
-	if line.Hints[0] == 0 {
+	if len(line.Hints) == 1 && line.Hints[0] == 0 {
 		return filledCells(len(line.Cells), CellWhite)
 	}
 	return nil
