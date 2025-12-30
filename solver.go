@@ -8,15 +8,15 @@ import (
 type Cell uint8
 
 const (
-	CellUnknown Cell = iota
+	CellUndetermined Cell = iota
 	CellWhite
 	CellBlack
 )
 
 func (c Cell) String() string {
 	switch c {
-	case CellUnknown:
-		return "CellUnknown"
+	case CellUndetermined:
+		return "CellUndetermined"
 	case CellBlack:
 		return "CellBlack"
 	case CellWhite:
@@ -54,7 +54,7 @@ func (b Board) Print() []string {
 				s.WriteString("#")
 			case CellWhite:
 				s.WriteString("_")
-			case CellUnknown:
+			case CellUndetermined:
 				s.WriteString("?")
 			}
 		}
@@ -157,6 +157,7 @@ func (s Solver) ApplyOnce(game Game) Board {
 	lines := s.ExtractLines(board, game.rowHints, game.colHints)
 	for _, rule := range s.rules {
 		for _, line := range lines {
+			// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 			updated := rule.Deduce(line.Cells)
 			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
 				s.ApplyLine(board, line, updated)
