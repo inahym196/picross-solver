@@ -1,6 +1,7 @@
 package picrosssolver
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -34,5 +35,30 @@ func TestZeroHintRule(t *testing.T) {
 
 	if !reflect.DeepEqual(expected, got) {
 		t.Errorf("expected %v, got %v", expected, got)
+	}
+}
+
+func TestMinimumSpacingRule(t *testing.T) {
+	tests := []struct {
+		length   int
+		hints    []int
+		expected []Cell
+	}{
+		{3, []int{1, 1}, []Cell{B, W, B}},
+		{4, []int{2, 1}, []Cell{B, B, W, B}},
+		{5, []int{1, 1, 1}, []Cell{B, W, B, W, B}},
+		{6, []int{1, 2, 1}, []Cell{B, W, B, B, W, B}},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := newHintedCells(tt.length, tt.hints)
+
+			got := MinimumSpacingRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
 	}
 }

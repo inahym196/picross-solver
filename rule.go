@@ -25,6 +25,33 @@ func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
 // 黒と白の配置が一意に決まる
 type MinimumSpacingRule struct{}
 
+func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
+
+	// 判定部分
+	var sum int
+	for _, h := range hc.Hints {
+		sum += h
+	}
+	if sum+(len(hc.Hints)-1) != len(hc.Cells) {
+		return nil
+	}
+
+	// 生成部分
+	deduced := make([]Cell, len(hc.Cells))
+	var last int
+	for i, hint := range hc.Hints {
+		for range hint {
+			deduced[last] = CellBlack
+			last++
+		}
+		if i != len(hc.Hints)-1 {
+			deduced[last] = CellWhite
+			last++
+		}
+	}
+	return deduced
+}
+
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定
 type OverlapFillRule struct{}
 
