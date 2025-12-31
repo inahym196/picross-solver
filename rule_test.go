@@ -177,3 +177,26 @@ func TestBlockSatisfiedRule(t *testing.T) {
 		})
 	}
 }
+
+func TestPruneImpossibleSegmentRule(t *testing.T) {
+	tests := []struct {
+		cells    []Cell
+		hints    []int
+		expected []Cell
+	}{
+		{[]Cell{U, W, U}, []int{1}, nil},
+		{[]Cell{U, W, U, U}, []int{2}, []Cell{W, W, U, U}},
+		{[]Cell{U, W, U, W, U, U}, []int{2, 3, 4, 5}, []Cell{W, W, W, W, U, U}},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := NewHintedCells(tt.cells, tt.hints)
+
+			got := PruneImpossibleSegmentRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
