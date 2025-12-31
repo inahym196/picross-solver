@@ -8,6 +8,23 @@ type Rule interface {
 	Deduce(HintedCells) []Cell
 }
 
+func splitByWhite(cells []Cell) [][]Cell {
+	var segs [][]Cell
+	var start int
+	for i, c := range cells {
+		if c == CellWhite {
+			if start < i {
+				segs = append(segs, cells[start:i])
+			}
+			start = i + 1
+		}
+	}
+	if start < len(cells) {
+		segs = append(segs, cells[start:])
+	}
+	return segs
+}
+
 type ExtractMatchRule struct{}
 
 func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {

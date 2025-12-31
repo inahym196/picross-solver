@@ -16,6 +16,26 @@ func newHintedCells(length int, hints []int) HintedCells {
 	return NewHintedCells(filledCells(length, U), hints)
 }
 
+func TestSplitByWhite(t *testing.T) {
+	tests := []struct {
+		cells    []Cell
+		expected [][]Cell
+	}{
+		{[]Cell{U, W, U}, [][]Cell{{U}, {U}}},
+		{[]Cell{W, B, U, U, W}, [][]Cell{{B, U, U}}},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			got := splitByWhite(tt.cells)
+
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
+
 func TestExtractMatchRule(t *testing.T) {
 	hc := newHintedCells(3, []int{3})
 	expected := []Cell{B, B, B}
