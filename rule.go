@@ -133,8 +133,7 @@ func (r EdgeExpantionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 }
 
 func (r EdgeExpantionRule) Deduce(hc HintedCells) []Cell {
-	cells := make([]Cell, len(hc.Cells))
-	copy(cells, hc.Cells)
+	cells := hc.Cells
 
 	firstHint := hc.Hints[0]
 	r.applyLeft(cells, firstHint)
