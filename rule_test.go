@@ -107,7 +107,29 @@ func TestOverlapFillRule(t *testing.T) {
 	}
 }
 
-func TestEdgeExpantionRule(t *testing.T) {
+func TestOverlapExpansionRule(t *testing.T) {
+	tests := []struct {
+		cells    []Cell
+		hints    []int
+		expected []Cell
+	}{
+		{[]Cell{U, B, U, U, U, U}, []int{3}, []Cell{U, B, B, U, U, U}},
+		{[]Cell{U, U, U, U, B, U}, []int{3}, []Cell{U, U, U, B, B, U}},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := NewHintedCells(tt.cells, tt.hints)
+
+			got := OverlapExpansionRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestEdgeExpansionRule(t *testing.T) {
 	tests := []struct {
 		cells    []Cell
 		hints    []int
@@ -119,8 +141,6 @@ func TestEdgeExpantionRule(t *testing.T) {
 		{[]Cell{U, U, B, W}, []int{2}, []Cell{U, B, B, W}},
 		{[]Cell{W, W, B, U, U, U}, []int{3}, []Cell{W, W, B, B, B, U}},
 		{[]Cell{U, U, U, B, W, W}, []int{3}, []Cell{U, B, B, B, W, W}},
-		{[]Cell{U, B, U, U, U, U}, []int{3}, []Cell{U, B, B, U, U, U}},
-		{[]Cell{U, U, U, U, B, U}, []int{3}, []Cell{U, U, U, B, B, U}},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {

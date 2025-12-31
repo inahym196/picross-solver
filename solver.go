@@ -83,7 +83,7 @@ func NewGame(rowHints, colHints [][]int) (*Game, error) {
 	if len(rowHints) == 0 || len(colHints) == 0 {
 		return nil, errors.New("rowHints,colHintsは1より大きい必要がある")
 	}
-
+	// TODO: hintsの最小配置がlen(cell)より小さい必要がある
 	width := len(colHints)
 	height := len(rowHints)
 
