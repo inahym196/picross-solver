@@ -126,7 +126,7 @@ func TestEdgeExpantionRule(t *testing.T) {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 			hc := NewHintedCells(tt.cells, tt.hints)
 
-			got := EdgeExpantionRule{}.Deduce(hc)
+			got := EdgeExpansionRule{}.Deduce(hc)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
