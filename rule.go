@@ -289,5 +289,39 @@ func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
 // すべての hint を満たした後の残りは白
 type FillRemainingWhiteRule struct{}
 
+func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
+	sumHints := 0
+	for _, h := range hc.Hints {
+		sumHints += h
+	}
+
+	blackCount := 0
+	for _, c := range hc.Cells {
+		if c == CellBlack {
+			blackCount++
+		}
+	}
+
+	if blackCount != sumHints {
+		return nil
+	}
+
+	deduced := make([]Cell, len(hc.Cells))
+	changed := false
+	for i, c := range hc.Cells {
+		if c == CellUndetermined {
+			deduced[i] = CellWhite
+			changed = true
+		} else {
+			deduced[i] = c
+		}
+	}
+
+	if !changed {
+		return nil
+	}
+	return deduced
+}
+
 // 仮に黒／白を置き、矛盾が出たら逆を確定
 type HypothesisRule struct{}
