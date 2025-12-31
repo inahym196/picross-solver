@@ -102,6 +102,14 @@ type HintedCells struct {
 
 func NewHintedCells(cells []Cell, hints []int) HintedCells { return HintedCells{cells, hints} }
 
+func DeepCopyHintedCells(hc HintedCells) HintedCells {
+	cells := make([]Cell, len(hc.Cells))
+	copy(cells, hc.Cells)
+	hints := make([]int, len(hc.Hints))
+	copy(hints, hc.Hints)
+	return NewHintedCells(cells, hints)
+}
+
 type Line struct {
 	Kind  LineKind
 	Index int
@@ -163,8 +171,8 @@ func (s Solver) ApplyOnce(game Game) Board {
 	for _, rule := range s.rules {
 		for _, line := range lines {
 			// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
-			// TODO: rule内でline.Cellを破壊されないようにcopyを渡した方がいい
-			updated := rule.Deduce(line.Cells)
+			hc := DeepCopyHintedCells(line.Cells)
+			updated := rule.Deduce(hc)
 			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
 				s.ApplyLine(board, line, updated)
 			}
