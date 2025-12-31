@@ -98,6 +98,55 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
 type EdgeExpantionRule struct{}
 
+func (r EdgeExpantionRule) countLeading(cells []Cell, cell Cell) int {
+	cnt := 0
+	for i := range cells {
+		if cells[i] != cell {
+			return cnt
+		}
+		cnt++
+	}
+	return cnt
+}
+
+func (r EdgeExpantionRule) lstrip(cells []Cell, cell Cell) []Cell {
+	return cells[r.countLeading(cells, cell):]
+}
+
+func (r EdgeExpantionRule) applyLeft(cells []Cell, hint int) (changed bool) {
+	seg := r.lstrip(cells, CellWhite)
+	firstBlackIndex := slices.Index(seg, CellBlack)
+	if firstBlackIndex == -1 || firstBlackIndex >= hint {
+		return false
+	}
+
+	expanding := false
+	for i := firstBlackIndex; i < hint && i < len(seg); i++ {
+		if seg[i] == CellBlack {
+			expanding = true
+		} else if expanding {
+			seg[i] = CellBlack
+			changed = true
+		}
+	}
+	return changed
+}
+
+func (r EdgeExpantionRule) Deduce(hc HintedCells) []Cell {
+	cells := make([]Cell, len(hc.Cells))
+	copy(cells, hc.Cells)
+
+	firstHint := hc.Hints[0]
+	r.applyLeft(cells, firstHint)
+	slices.Reverse(cells)
+
+	lastHint := hc.Hints[len(hc.Hints)-1]
+	r.applyLeft(cells, lastHint)
+	slices.Reverse(cells)
+
+	return cells
+}
+
 // 既に黒が hint 長に達しているブロックの前後を白確定
 type BlockSatisfiedRule struct{}
 

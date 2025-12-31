@@ -79,6 +79,11 @@ type Game struct {
 }
 
 func NewGame(rowHints, colHints [][]int) *Game {
+	// TODO: Hintsはそれぞれ1より大きいという制約を入れる
+	// 仮置きでpanicさせておく
+	if len(rowHints) < 1 || len(colHints) < 1 {
+		panic("rowHints,colHintsは1より大きい必要がある")
+	}
 	b := newBoard(len(rowHints), len(colHints))
 	return &Game{b, rowHints, colHints}
 }
@@ -158,6 +163,7 @@ func (s Solver) ApplyOnce(game Game) Board {
 	for _, rule := range s.rules {
 		for _, line := range lines {
 			// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
+			// TODO: rule内でline.Cellを破壊されないようにcopyを渡した方がいい
 			updated := rule.Deduce(line.Cells)
 			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
 				s.ApplyLine(board, line, updated)
