@@ -59,38 +59,51 @@ func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定
 type OverlapFillRule struct{}
 
-// TODO: 実装が雑すぎるので後で綺麗にする。一応テストは通る
-func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
-	leftCells := make([]int, len(hc.Cells))
-	var last int
-	for i, hint := range hc.Hints {
-		for range hint {
-			leftCells[last] = i + 1
-			last++
-		}
-		if i != len(hc.Hints)-1 {
-			last++
-		}
+func (r OverlapFillRule) leftAlignedStarts(hints []int) []int {
+	starts := make([]int, len(hints))
+	pos := 0
+	for i, h := range hints {
+		starts[i] = pos
+		pos += h + 1
 	}
-	rightCells := make([]int, len(hc.Cells))
-	last = 0
-	for i, hint := range slices.Backward(hc.Hints) {
-		for range hint {
-			rightCells[last] = i + 1
-			last++
-		}
-		if i != 0 {
-			last++
-		}
-	}
-	slices.Reverse(rightCells)
+	return starts
+}
 
-	cells := make([]Cell, len(hc.Cells))
-	copy(cells, hc.Cells)
-	for i := range cells {
-		if leftCells[i] == rightCells[i] {
-			cells[i] = CellBlack
+func (r OverlapFillRule) rightAlignedStarts(hints []int, length int) []int {
+	starts := make([]int, len(hints))
+	pos := length
+	for i := len(hints) - 1; i >= 0; i-- {
+		pos -= hints[i]
+		starts[i] = pos
+		pos--
+	}
+	return starts
+}
+
+func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
+	n := len(hc.Cells)
+	cells := hc.Cells
+
+	leftStarts := r.leftAlignedStarts(hc.Hints)
+	rightStarts := r.rightAlignedStarts(hc.Hints, n)
+
+	changed := false
+	for i, hint := range hc.Hints {
+		left := leftStarts[i]
+		right := rightStarts[i]
+
+		overlapStart := max(left, right)
+		overlapEnd := min(left+hint, right+hint)
+
+		for p := overlapStart; p < overlapEnd; p++ {
+			if cells[p] == CellUndetermined {
+				cells[p] = CellBlack
+				changed = true
+			}
 		}
+	}
+	if !changed {
+		return nil
 	}
 	return cells
 }
