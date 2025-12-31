@@ -128,23 +128,8 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
 type EdgeExpantionRule struct{}
 
-func (r EdgeExpantionRule) countLeading(cells []Cell, cell Cell) int {
-	cnt := 0
-	for i := range cells {
-		if cells[i] != cell {
-			return cnt
-		}
-		cnt++
-	}
-	return cnt
-}
-
-func (r EdgeExpantionRule) lstrip(cells []Cell, cell Cell) []Cell {
-	return cells[r.countLeading(cells, cell):]
-}
-
 func (r EdgeExpantionRule) applyLeft(cells []Cell, hint int) (changed bool) {
-	seg := r.lstrip(cells, CellWhite)
+	seg := splitByWhite(cells)[0]
 	firstBlackIndex := slices.Index(seg, CellBlack)
 	if firstBlackIndex == -1 || firstBlackIndex >= hint {
 		return false
