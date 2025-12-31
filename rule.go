@@ -162,6 +162,68 @@ func (r EdgeExpantionRule) Deduce(hc HintedCells) []Cell {
 // 既に黒が hint 長に達しているブロックの前後を白確定
 type BlockSatisfiedRule struct{}
 
+func (r BlockSatisfiedRule) maxHint(hints []int) int {
+	hint := -1
+	for _, h := range hints {
+		hint = max(hint, h)
+	}
+	return hint
+}
+
+func findSingleBlackBlock(cells []Cell) (start, length int) {
+	start = -1
+	length = 0
+
+	i := 0
+	for i < len(cells) {
+		if cells[i] != CellBlack {
+			i++
+			continue
+		}
+
+		if start != -1 {
+			return -1, 0
+		}
+
+		start = i
+		for i < len(cells) && cells[i] == CellBlack {
+			length++
+			i++
+		}
+	}
+
+	return start, length
+}
+
+func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
+
+	hint := r.maxHint(hc.Hints)
+	cells := hc.Cells
+
+	start, length := findSingleBlackBlock(cells)
+	if length != hint {
+		return nil
+	}
+
+	changed := false
+
+	if start-1 >= 0 && cells[start-1] == CellUndetermined {
+		cells[start-1] = CellWhite
+		changed = true
+	}
+
+	end := start + length
+	if end < len(cells) && cells[end] == CellUndetermined {
+		cells[end] = CellWhite
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+	return cells
+}
+
 // 白確定セルで line を分割し、それぞれにヒントを再配分
 type SegmentSplitRule struct{}
 

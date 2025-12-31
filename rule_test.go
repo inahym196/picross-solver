@@ -114,3 +114,26 @@ func TestEdgeExpantionRule(t *testing.T) {
 		})
 	}
 }
+
+func TestBlockSatisfiedRule(t *testing.T) {
+	tests := []struct {
+		cells    []Cell
+		hints    []int
+		expected []Cell
+	}{
+		{[]Cell{U}, []int{1, 1}, nil},
+		{[]Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
+		{[]Cell{U, B, B, U, U}, []int{2}, []Cell{W, B, B, W, U}},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := NewHintedCells(tt.cells, tt.hints)
+
+			got := BlockSatisfiedRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
