@@ -11,7 +11,7 @@ func TestMain(t *testing.T) {
 	t.Run("row test full", func(t *testing.T) {
 		rowHints := [][]int{{0}, {2}}
 		colHints := [][]int{{1}, {1}}
-		game := picrosssolver.NewGame(rowHints, colHints)
+		game, _ := picrosssolver.NewGame(rowHints, colHints)
 		solver := picrosssolver.NewSolver()
 		expected := []string{
 			"__",
@@ -27,7 +27,7 @@ func TestMain(t *testing.T) {
 	t.Run("col test full", func(t *testing.T) {
 		rowHints := [][]int{{1}, {1}}
 		colHints := [][]int{{2}, {0}}
-		game := picrosssolver.NewGame(rowHints, colHints)
+		game, _ := picrosssolver.NewGame(rowHints, colHints)
 		solver := picrosssolver.NewSolver()
 		expected := []string{
 			"#_",

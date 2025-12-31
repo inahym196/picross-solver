@@ -1,6 +1,7 @@
 package picrosssolver
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 )
@@ -78,14 +79,16 @@ type Game struct {
 	colHints [][]int
 }
 
-func NewGame(rowHints, colHints [][]int) *Game {
-	// TODO: Hintsはそれぞれ1より大きいという制約を入れる
-	// 仮置きでpanicさせておく
-	if len(rowHints) < 1 || len(colHints) < 1 {
-		panic("rowHints,colHintsは1より大きい必要がある")
+func NewGame(rowHints, colHints [][]int) (*Game, error) {
+	if len(rowHints) == 0 || len(colHints) == 0 {
+		return nil, errors.New("rowHints,colHintsは1より大きい必要がある")
 	}
-	b := newBoard(len(rowHints), len(colHints))
-	return &Game{b, rowHints, colHints}
+
+	width := len(colHints)
+	height := len(rowHints)
+
+	b := newBoard(height, width)
+	return &Game{b, rowHints, colHints}, nil
 }
 
 type LineKind uint8
