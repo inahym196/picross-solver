@@ -200,3 +200,26 @@ func TestPruneImpossibleSegmentRule(t *testing.T) {
 		})
 	}
 }
+
+func TestFillRemainingWhiteRule(t *testing.T) {
+	tests := []struct {
+		cells    []Cell
+		hints    []int
+		expected []Cell
+	}{
+		{[]Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
+		{[]Cell{B, U, B, B}, []int{1, 2}, []Cell{B, W, B, B}},
+		{[]Cell{U, B, B, W, U, B}, []int{2, 1}, []Cell{W, B, B, W, W, B}},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			hc := NewHintedCells(tt.cells, tt.hints)
+
+			got := FillRemainingWhiteRule{}.Deduce(hc)
+
+			if !reflect.DeepEqual(tt.expected, got) {
+				t.Errorf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
