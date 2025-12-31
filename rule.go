@@ -125,24 +125,51 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 	return cells
 }
 
+// 端が未確定なら黒をヒント分拡張する
+type OverlapExpansionRule struct{}
+
+func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
+	seg := splitByWhite(cells)[0]
+	firstBlackIndex := slices.Index(seg, CellBlack)
+	if firstBlackIndex >= hint {
+		return false
+	}
+
+	for i := firstBlackIndex + 1; i < hint; i++ {
+		seg[i] = CellBlack
+		changed = true
+	}
+	return changed
+}
+
+func (r OverlapExpansionRule) Deduce(hc HintedCells) []Cell {
+	cells := hc.Cells
+
+	firstHint := hc.Hints[0]
+	changed1 := r.applyLeft(cells, firstHint)
+
+	slices.Reverse(cells)
+	lastHint := hc.Hints[len(hc.Hints)-1]
+	changed2 := r.applyLeft(cells, lastHint)
+
+	if !changed1 && !changed2 {
+		return nil
+	}
+	slices.Reverse(cells)
+	return cells
+}
+
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
 type EdgeExpansionRule struct{}
 
 func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	seg := splitByWhite(cells)[0]
-	firstBlackIndex := slices.Index(seg, CellBlack)
-	if firstBlackIndex == -1 || firstBlackIndex >= hint {
+	if seg[0] != CellBlack || len(seg) < hint {
 		return false
 	}
-
-	expanding := false
-	for i := firstBlackIndex; i < hint && i < len(seg); i++ {
-		if seg[i] == CellBlack {
-			expanding = true
-		} else if expanding {
-			seg[i] = CellBlack
-			changed = true
-		}
+	for i := range hint {
+		seg[i] = CellBlack
+		changed = true
 	}
 	return changed
 }
@@ -151,13 +178,16 @@ func (r EdgeExpansionRule) Deduce(hc HintedCells) []Cell {
 	cells := hc.Cells
 
 	firstHint := hc.Hints[0]
-	r.applyLeft(cells, firstHint)
-	slices.Reverse(cells)
+	changed1 := r.applyLeft(cells, firstHint)
 
+	slices.Reverse(cells)
 	lastHint := hc.Hints[len(hc.Hints)-1]
-	r.applyLeft(cells, lastHint)
-	slices.Reverse(cells)
+	changed2 := r.applyLeft(cells, lastHint)
 
+	if !changed1 && !changed2 {
+		return nil
+	}
+	slices.Reverse(cells)
 	return cells
 }
 
