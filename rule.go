@@ -256,14 +256,35 @@ func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
 	return cells
 }
 
-// 白確定セルで line を分割し、それぞれにヒントを再配分
-type SegmentSplitRule struct{}
-
-// ヒントが収まらない区間を白確定
+// 最小 hint が収まらない区間を白確定
 type PruneImpossibleSegmentRule struct{}
 
-// 長さ < 最小 hint の区間はすべて白
-type TooSmallSegmentRule struct{}
+func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
+	hint := hints[0]
+	for _, h := range hints {
+		hint = min(hint, h)
+	}
+	return hint
+}
+
+func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
+	hint := r.minHint(hc.Hints)
+	changed := false
+
+	segs := splitByWhite(hc.Cells)
+	for i, seg := range segs {
+		if len(seg) < hint {
+			changed = true
+			for j := range seg {
+				segs[i][j] = CellWhite
+			}
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return hc.Cells
+}
 
 // すべての hint を満たした後の残りは白
 type FillRemainingWhiteRule struct{}
