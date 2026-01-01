@@ -38,7 +38,7 @@ func NewSolver() Solver {
 	rules := []Rule{
 		ExtractMatchRule{},
 		ZeroHintRule{},
-		//MinimumSpacingRule{},
+		MinimumSpacingRule{},
 		//OverlapFillRule{},
 		//OverlapExpansionRule{},
 		//EdgeExpansionRule{},
