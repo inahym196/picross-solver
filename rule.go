@@ -26,22 +26,6 @@ func splitByWhite(cells []Cell) [][]Cell {
 	return segs
 }
 
-type ExtractMatchRule struct{}
-
-func (r ExtractMatchRule) Name() string {
-	return "ExtractMatchRule"
-}
-
-func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {
-	if len(hc.Hints) != 1 || hc.Hints[0] != len(hc.Cells) {
-		return nil
-	}
-	for i := range hc.Cells {
-		hc.Cells[i] = CellBlack
-	}
-	return hc.Cells
-}
-
 type ZeroHintRule struct{}
 
 func (e ZeroHintRule) Name() string {
