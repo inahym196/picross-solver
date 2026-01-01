@@ -1,6 +1,8 @@
 package picrosssolver
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type LineKind uint8
 
@@ -8,6 +10,18 @@ const (
 	LineKindRow LineKind = iota
 	LineKindColumn
 )
+
+func (lk LineKind) String() string {
+	switch lk {
+	case LineKindRow:
+		return "Row"
+	case LineKindColumn:
+		return "Column"
+	default:
+		panic("invalid LineKind")
+	}
+
+}
 
 type HintedCells struct {
 	Cells []Cell
@@ -27,7 +41,39 @@ func DeepCopyHintedCells(hc HintedCells) HintedCells {
 type Line struct {
 	Kind  LineKind
 	Index int
-	Cells HintedCells
+}
+
+type lineAccessor struct {
+	Get func() []Cell
+	Set func(cells []Cell)
+}
+
+func rowAccessor(board Board, row int) lineAccessor {
+	return lineAccessor{
+		Get: func() []Cell {
+			cells := make([]Cell, board.GetColumns())
+			copy(cells, board[row])
+			return cells
+		},
+		Set: func(cells []Cell) { copy(board[row], cells) },
+	}
+}
+
+func colAccessor(board Board, col int) lineAccessor {
+	return lineAccessor{
+		Get: func() []Cell {
+			cells := make([]Cell, board.GetRows())
+			for i := range board {
+				cells[i] = board[i][col]
+			}
+			return cells
+		},
+		Set: func(cells []Cell) {
+			for i := range cells {
+				board[i][col] = cells[i]
+			}
+		},
+	}
 }
 
 type Solver struct {
@@ -49,55 +95,26 @@ func NewSolver() Solver {
 	return Solver{rules}
 }
 
-func (s Solver) ExtractLines(board Board, rowHints, colHints [][]int) []Line {
-	var lines []Line
-
-	for i := range board {
-		lines = append(lines, Line{
-			Kind:  LineKindRow,
-			Index: i,
-			Cells: NewHintedCells(board[i], rowHints[i]),
-		})
-	}
-	for i := range board[0] {
-		col := make([]Cell, len(board[0]))
-		for row := range board {
-			col[row] = board[row][i]
+func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
+	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
+	for _, rule := range s.rules {
+		hc := NewHintedCells(acc.Get(), hints)
+		updated := rule.Deduce(hc)
+		if updated != nil && !reflect.DeepEqual(acc.Get(), updated) {
+			acc.Set(updated)
 		}
-		lines = append(lines, Line{
-			Kind:  LineKindColumn,
-			Index: i,
-			Cells: NewHintedCells(col, colHints[i]),
-		})
-	}
-	return lines
-}
-
-func (s Solver) ApplyLine(board Board, line Line, cells []Cell) {
-	switch line.Kind {
-	case LineKindRow:
-		copy(board[line.Index], cells)
-	case LineKindColumn:
-		for row := range board {
-			board[row][line.Index] = cells[row]
-		}
-	default:
-		panic("invalid LineKind")
 	}
 }
 
 func (s Solver) ApplyOnce(game Game) Board {
 	board := DeepCopyBoard(game.board)
-	lines := s.ExtractLines(board, game.rowHints, game.colHints)
-	for _, rule := range s.rules {
-		for _, line := range lines {
-			// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
-			hc := DeepCopyHintedCells(line.Cells)
-			updated := rule.Deduce(hc)
-			if updated != nil && !reflect.DeepEqual(line.Cells, updated) {
-				s.ApplyLine(board, line, updated)
-			}
-		}
+	for i := range game.rowHints {
+		acc := rowAccessor(board, i)
+		s.ApplyLine(acc, game.rowHints[i])
+	}
+	for i := range game.colHints {
+		acc := colAccessor(board, i)
+		s.ApplyLine(acc, game.colHints[i])
 	}
 	return board
 }
