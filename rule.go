@@ -33,10 +33,13 @@ func (r ExtractMatchRule) Name() string {
 }
 
 func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {
-	if len(hc.Hints) == 1 && hc.Hints[0] == len(hc.Cells) {
-		return filledCells(len(hc.Cells), CellBlack)
+	if len(hc.Hints) != 1 || hc.Hints[0] != len(hc.Cells) {
+		return nil
 	}
-	return nil
+	for i := range hc.Cells {
+		hc.Cells[i] = CellBlack
+	}
+	return hc.Cells
 }
 
 type ZeroHintRule struct{}
@@ -46,10 +49,13 @@ func (e ZeroHintRule) Name() string {
 }
 
 func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
-	if len(hc.Hints) == 1 && hc.Hints[0] == 0 {
-		return filledCells(len(hc.Cells), CellWhite)
+	if len(hc.Hints) != 1 || hc.Hints[0] != 0 {
+		return nil
 	}
-	return nil
+	for i := range hc.Cells {
+		hc.Cells[i] = CellWhite
+	}
+	return hc.Cells
 }
 
 // 黒と白の配置が一意に決まる
