@@ -63,15 +63,6 @@ func (b Board) Print() []string {
 	return ss
 }
 
-func DeepCopyBoard(src Board) Board {
-	dst := make(Board, len(src))
-	for i := range src {
-		dst[i] = make([]Cell, len(src[i]))
-		copy(dst[i], src[i])
-	}
-	return dst
-}
-
 type Game struct {
 	board    Board
 	rowHints [][]int
