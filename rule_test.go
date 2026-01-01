@@ -99,6 +99,7 @@ func TestOverlapExpansionRule(t *testing.T) {
 		hints    []int
 		expected []Cell
 	}{
+		{[]Cell{U, U, U, U, U}, []int{1, 1}, nil},
 		{[]Cell{U, B, U, U, U, U}, []int{3}, []Cell{U, B, B, U, U, U}},
 		{[]Cell{U, U, U, U, B, U}, []int{3}, []Cell{U, U, U, B, B, U}},
 	}
