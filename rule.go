@@ -129,7 +129,13 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 type OverlapExpansionRule struct{}
 
 func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
-	seg := splitByWhite(cells)[0]
+
+	var seg []Cell
+	segs := splitByWhite(cells)
+	if len(segs) < 1 {
+		return false
+	}
+	seg = segs[0]
 	firstBlackIndex := slices.Index(seg, CellBlack)
 	if firstBlackIndex >= hint {
 		return false
