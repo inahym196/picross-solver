@@ -44,6 +44,14 @@ func newBoard(height, width int) Board {
 	return board
 }
 
+func (b Board) GetRows() int {
+	return len(b)
+}
+
+func (b Board) GetColumns() int {
+	return len(b[0])
+}
+
 func (b Board) Print() []string {
 	var ss []string
 	for i := range b {
