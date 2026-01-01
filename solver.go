@@ -112,3 +112,22 @@ func (s Solver) ApplyOnce(game Game) Board {
 	}
 	return board
 }
+
+func (s Solver) checkComplete(board Board) bool {
+	for row := range board {
+		if slices.Index(board[row], CellUndetermined) != -1 {
+			return false
+		}
+	}
+	return true
+}
+
+func (s Solver) ApplyMany(game Game) Board {
+	board := slices.Clone(game.board)
+	cnt := 10
+	for !s.checkComplete(board) && cnt > 0 {
+		board = s.ApplyOnce(game)
+		cnt--
+	}
+	return board
+}
