@@ -70,6 +70,28 @@ func TestE2E(t *testing.T) {
 				"#####",
 			},
 		},
+		{
+			rowHints: ParseHints("5 1-1 1-1 1-1 1-2"),
+			colHints: ParseHints("1 5 1 5 1-1"),
+			expected: []string{
+				"#####",
+				"##_#_",
+				"##_#?",
+				"##_#_",
+				"?#_#?",
+			},
+		},
+		{
+			rowHints: ParseHints("1 1 5 1 1"),
+			colHints: ParseHints("1 3 1-1-1 1 1"),
+			expected: []string{
+				"__#__",
+				"_#__",
+				"#####",
+				"_#__",
+				"__#_",
+			},
+		},
 	}
 	solver := picrosssolver.NewSolver()
 	for i, tt := range tests {
