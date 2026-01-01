@@ -26,14 +26,6 @@ func (c Cell) String() string {
 	}
 }
 
-func filledCells(length int, c Cell) []Cell {
-	line := make([]Cell, length)
-	for i := range line {
-		line[i] = c
-	}
-	return line
-}
-
 type Board [][]Cell
 
 func newBoard(height, width int) Board {
