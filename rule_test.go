@@ -32,17 +32,6 @@ func TestSplitByWhite(t *testing.T) {
 	}
 }
 
-func TestExtractMatchRule(t *testing.T) {
-	hc := NewHintedCells([]Cell{U, U, U}, []int{3})
-	expected := []Cell{B, B, B}
-
-	got := ExtractMatchRule{}.Deduce(hc)
-
-	if !reflect.DeepEqual(expected, got) {
-		t.Errorf("expected %v, got %v", expected, got)
-	}
-}
-
 func TestZeroHintRule(t *testing.T) {
 	hc := NewHintedCells([]Cell{U, U, U}, []int{0})
 	expected := []Cell{W, W, W}
@@ -61,6 +50,7 @@ func TestMinimumSpacingRule(t *testing.T) {
 		expected []Cell
 	}{
 		{[]Cell{U, U, U}, []int{1, 1}, []Cell{B, W, B}},
+		{[]Cell{U, U, U}, []int{3}, []Cell{B, B, B}},
 		{[]Cell{U, U, U, U}, []int{2, 1}, []Cell{B, B, W, B}},
 		{[]Cell{U, U, U, U, U}, []int{1, 1, 1}, []Cell{B, W, B, W, B}},
 		{[]Cell{U, U, U, U, U, U}, []int{1, 2, 1}, []Cell{B, W, B, B, W, B}},

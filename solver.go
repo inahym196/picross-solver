@@ -82,7 +82,6 @@ type Solver struct {
 
 func NewSolver() Solver {
 	rules := []Rule{
-		ExtractMatchRule{},
 		ZeroHintRule{},
 		MinimumSpacingRule{},
 		//OverlapFillRule{},
