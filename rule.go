@@ -1,7 +1,6 @@
 package picrosssolver
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -140,8 +139,6 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 	if !changed {
 		return nil
 	}
-	fmt.Printf("OverlapFillRule: hc.Cells: %v,hints: %v\n", hc.Cells, hc.Hints)
-	fmt.Printf("OverlapFillRule:    cells: %v\n", cells)
 	return cells
 }
 
