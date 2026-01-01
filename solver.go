@@ -2,6 +2,7 @@ package picrosssolver
 
 import (
 	"reflect"
+	"slices"
 )
 
 type LineKind uint8
@@ -28,14 +29,8 @@ type HintedCells struct {
 	Hints []int
 }
 
-func NewHintedCells(cells []Cell, hints []int) HintedCells { return HintedCells{cells, hints} }
-
-func DeepCopyHintedCells(hc HintedCells) HintedCells {
-	cells := make([]Cell, len(hc.Cells))
-	copy(cells, hc.Cells)
-	hints := make([]int, len(hc.Hints))
-	copy(hints, hc.Hints)
-	return NewHintedCells(cells, hints)
+func NewHintedCells(cells []Cell, hints []int) HintedCells {
+	return HintedCells{cells, hints}
 }
 
 type Line struct {
@@ -50,11 +45,7 @@ type lineAccessor struct {
 
 func rowAccessor(board Board, row int) lineAccessor {
 	return lineAccessor{
-		Get: func() []Cell {
-			cells := make([]Cell, board.GetColumns())
-			copy(cells, board[row])
-			return cells
-		},
+		Get: func() []Cell { return slices.Clone(board[row]) },
 		Set: func(cells []Cell) { copy(board[row], cells) },
 	}
 }
@@ -84,12 +75,12 @@ func NewSolver() Solver {
 	rules := []Rule{
 		ZeroHintRule{},
 		MinimumSpacingRule{},
-		//OverlapFillRule{},
-		//OverlapExpansionRule{},
-		//EdgeExpansionRule{},
-		//BlockSatisfiedRule{},
-		//PruneImpossibleSegmentRule{},
-		//FillRemainingWhiteRule{},
+		OverlapFillRule{},
+		OverlapExpansionRule{},
+		EdgeExpansionRule{},
+		BlockSatisfiedRule{},
+		PruneImpossibleSegmentRule{},
+		FillRemainingWhiteRule{},
 	}
 	return Solver{rules}
 }
@@ -97,9 +88,13 @@ func NewSolver() Solver {
 func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 	for _, rule := range s.rules {
-		hc := NewHintedCells(acc.Get(), hints)
+		cells := acc.Get()
+		if slices.Index(cells, CellUndetermined) == -1 {
+			return
+		}
+		hc := NewHintedCells(slices.Clone(cells), slices.Clone(hints))
 		updated := rule.Deduce(hc)
-		if updated != nil && !reflect.DeepEqual(acc.Get(), updated) {
+		if updated != nil && !reflect.DeepEqual(cells, updated) {
 			acc.Set(updated)
 		}
 	}
