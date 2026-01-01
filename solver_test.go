@@ -1,43 +1,76 @@
 package picrosssolver_test
 
 import (
+	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 
 	picrosssolver "github.com/inahym196/picross-solver"
 )
 
-func TestMain(t *testing.T) {
-	t.Run("row test full", func(t *testing.T) {
-		rowHints := [][]int{{0}, {2}}
-		colHints := [][]int{{1}, {1}}
-		game, _ := picrosssolver.NewGame(rowHints, colHints)
-		solver := picrosssolver.NewSolver()
-		expected := []string{
-			"__",
-			"##",
+func ParseHints(s string) [][]int {
+	fields := strings.Fields(s)
+	hints := make([][]int, 0, len(fields))
+	for _, f := range fields {
+		parts := strings.Split(f, "-")
+		row := make([]int, 0, len(parts))
+		for _, p := range parts {
+			n, err := strconv.Atoi(p)
+			if err != nil {
+				panic(err)
+			}
+			row = append(row, n)
 		}
+		hints = append(hints, row)
+	}
+	return hints
+}
 
-		solve := solver.ApplyOnce(*game).Print()
+func TestParseHints(t *testing.T) {
+	s := `0-1 2`
+	got := ParseHints(s)
+	expected := [][]int{{0, 1}, {2}}
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("expected %v, got %v", expected, got)
+	}
+}
 
-		if !reflect.DeepEqual(solve, expected) {
-			t.Errorf("expected %v, got %v", expected, solve)
-		}
-	})
-	t.Run("col test full", func(t *testing.T) {
-		rowHints := [][]int{{1}, {1}}
-		colHints := [][]int{{2}, {0}}
-		game, _ := picrosssolver.NewGame(rowHints, colHints)
-		solver := picrosssolver.NewSolver()
-		expected := []string{
-			"#_",
-			"#_",
-		}
+func TestE2E(t *testing.T) {
+	tests := []struct {
+		rowHints [][]int
+		colHints [][]int
+		expected []string
+	}{
+		{
+			rowHints: ParseHints("0 2"),
+			colHints: ParseHints("1 1"),
+			expected: []string{
+				"__",
+				"##",
+			},
+		},
+		{
+			rowHints: ParseHints("1 1"),
+			colHints: ParseHints("2 0"),
+			expected: []string{
+				"#_",
+				"#_",
+			},
+		},
+	}
+	solver := picrosssolver.NewSolver()
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
+			game, _ := picrosssolver.NewGame(tt.rowHints, tt.colHints)
 
-		solve := solver.ApplyOnce(*game).Print()
+			solve := solver.ApplyOnce(*game).Print()
 
-		if !reflect.DeepEqual(solve, expected) {
-			t.Errorf("expected %v, got %v", expected, solve)
-		}
-	})
+			if !reflect.DeepEqual(solve, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, solve)
+			}
+
+		})
+	}
 }
