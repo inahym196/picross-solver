@@ -36,8 +36,15 @@ type Solver struct {
 
 func NewSolver() Solver {
 	rules := []Rule{
-		&ExtractMatchRule{},
-		&ZeroHintRule{},
+		ExtractMatchRule{},
+		ZeroHintRule{},
+		//MinimumSpacingRule{},
+		//OverlapFillRule{},
+		//OverlapExpansionRule{},
+		//EdgeExpansionRule{},
+		//BlockSatisfiedRule{},
+		//PruneImpossibleSegmentRule{},
+		//FillRemainingWhiteRule{},
 	}
 	return Solver{rules}
 }
