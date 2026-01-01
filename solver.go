@@ -101,7 +101,7 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
 }
 
 func (s Solver) ApplyOnce(game Game) Board {
-	board := DeepCopyBoard(game.board)
+	board := slices.Clone(game.board)
 	for i := range game.rowHints {
 		acc := rowAccessor(board, i)
 		s.ApplyLine(acc, game.rowHints[i])
