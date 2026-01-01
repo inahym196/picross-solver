@@ -1,10 +1,12 @@
 package picrosssolver
 
 import (
+	"fmt"
 	"slices"
 )
 
 type Rule interface {
+	Name() string
 	Deduce(HintedCells) []Cell
 }
 
@@ -27,6 +29,10 @@ func splitByWhite(cells []Cell) [][]Cell {
 
 type ExtractMatchRule struct{}
 
+func (r ExtractMatchRule) Name() string {
+	return "ExtractMatchRule"
+}
+
 func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {
 	if len(hc.Hints) == 1 && hc.Hints[0] == len(hc.Cells) {
 		return filledCells(len(hc.Cells), CellBlack)
@@ -35,6 +41,10 @@ func (r ExtractMatchRule) Deduce(hc HintedCells) []Cell {
 }
 
 type ZeroHintRule struct{}
+
+func (e ZeroHintRule) Name() string {
+	return "ZeroHintRule"
+}
 
 func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
 	if len(hc.Hints) == 1 && hc.Hints[0] == 0 {
@@ -45,6 +55,10 @@ func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
 
 // 黒と白の配置が一意に決まる
 type MinimumSpacingRule struct{}
+
+func (r MinimumSpacingRule) Name() string {
+	return "MinimumSpacingRule"
+}
 
 func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
 
@@ -75,6 +89,10 @@ func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
 
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定
 type OverlapFillRule struct{}
+
+func (r OverlapFillRule) Name() string {
+	return "OverlapFillRule"
+}
 
 func (r OverlapFillRule) leftAlignedStarts(hints []int) []int {
 	starts := make([]int, len(hints))
@@ -122,11 +140,17 @@ func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
 	if !changed {
 		return nil
 	}
+	fmt.Printf("OverlapFillRule: hc.Cells: %v,hints: %v\n", hc.Cells, hc.Hints)
+	fmt.Printf("OverlapFillRule:    cells: %v\n", cells)
 	return cells
 }
 
 // 端が未確定なら黒をヒント分拡張する
 type OverlapExpansionRule struct{}
+
+func (r OverlapExpansionRule) Name() string {
+	return "OverlapExpansionRule"
+}
 
 func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 
@@ -168,6 +192,10 @@ func (r OverlapExpansionRule) Deduce(hc HintedCells) []Cell {
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
 type EdgeExpansionRule struct{}
 
+func (r EdgeExpansionRule) Name() string {
+	return "EdgeExpansionRule"
+}
+
 func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	seg := splitByWhite(cells)[0]
 	if seg[0] != CellBlack || len(seg) < hint {
@@ -199,6 +227,10 @@ func (r EdgeExpansionRule) Deduce(hc HintedCells) []Cell {
 
 // 既に黒が hint 長に達しているブロックの前後を白確定
 type BlockSatisfiedRule struct{}
+
+func (r BlockSatisfiedRule) Name() string {
+	return "BlockSatisfiedRule"
+}
 
 func (r BlockSatisfiedRule) maxHint(hints []int) int {
 	hint := -1
@@ -265,6 +297,10 @@ func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
 // 最小 hint が収まらない区間を白確定
 type PruneImpossibleSegmentRule struct{}
 
+func (r PruneImpossibleSegmentRule) Name() string {
+	return "PruneImpossibleSegmentRule"
+}
+
 func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
 	hint := hints[0]
 	for _, h := range hints {
@@ -294,6 +330,10 @@ func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
 
 // すべての hint を満たした後の残りは白
 type FillRemainingWhiteRule struct{}
+
+func (r FillRemainingWhiteRule) Name() string {
+	return "FillRemainingWhiteRule"
+}
 
 func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
 	sumHints := 0
