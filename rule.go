@@ -142,7 +142,7 @@ func (r OverlapExpansionRule) Name() string {
 func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	seg := splitByWhite(cells)[0]
 	firstBlackIndex := slices.Index(seg, CellBlack)
-	if firstBlackIndex >= hint {
+	if firstBlackIndex == -1 || firstBlackIndex >= hint {
 		return false
 	}
 
