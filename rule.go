@@ -86,33 +86,77 @@ func (r OverlapFillRule) Name() string {
 	return "OverlapFillRule"
 }
 
-func (r OverlapFillRule) leftAlignedStarts(hints []int) []int {
+func (r OverlapFillRule) nextPlacablePos(cells []Cell, start int) int {
+	for i := start; i < len(cells); i++ {
+		if cells[i] != CellWhite {
+			return i
+		}
+	}
+	return len(cells)
+}
+
+func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
 	starts := make([]int, len(hints))
 	pos := 0
+
 	for i, h := range hints {
+		pos = r.nextPlacablePos(cells, pos)
+		if pos+h > len(cells) {
+			return nil
+		}
+		for slices.Contains(cells[pos:pos+h], CellWhite) {
+			pos = r.nextPlacablePos(cells, pos+1)
+			if pos+h > len(cells) {
+				return nil
+			}
+		}
 		starts[i] = pos
 		pos += h + 1
 	}
 	return starts
 }
 
-func (r OverlapFillRule) rightAlignedStarts(hints []int, length int) []int {
+func (r OverlapFillRule) prevPlacablePos(cells []Cell, start int) int {
+	for i := start; i >= 0; i-- {
+		if cells[i] != CellWhite {
+			return i
+		}
+	}
+	return -1
+}
+
+func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 	starts := make([]int, len(hints))
-	pos := length
+	pos := len(cells) - 1
+
 	for i := len(hints) - 1; i >= 0; i-- {
-		pos -= hints[i]
-		starts[i] = pos
-		pos--
+		h := hints[i]
+
+		pos = r.prevPlacablePos(cells, pos)
+		start := pos - h + 1
+		if start < 0 {
+			return nil
+		}
+
+		for slices.Contains(cells[start:pos+1], CellWhite) {
+			pos := r.prevPlacablePos(cells, start-1)
+			start = pos - h + 1
+		}
+		starts[i] = start
+		pos = start - 2
 	}
 	return starts
 }
 
 func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
-	n := len(hc.Cells)
 	cells := hc.Cells
 
-	leftStarts := r.leftAlignedStarts(hc.Hints)
-	rightStarts := r.rightAlignedStarts(hc.Hints, n)
+	leftStarts := r.leftAlignedStarts(cells, hc.Hints)
+	rightStarts := r.rightAlignedStarts(cells, hc.Hints)
+
+	if leftStarts == nil || rightStarts == nil {
+		return nil
+	}
 
 	changed := false
 	for i, hint := range hc.Hints {
