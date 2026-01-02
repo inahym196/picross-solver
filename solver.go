@@ -123,11 +123,13 @@ func (s Solver) checkComplete(board Board) bool {
 }
 
 func (s Solver) ApplyMany(game Game) Board {
-	board := slices.Clone(game.board)
-	cnt := 10
-	for !s.checkComplete(board) && cnt > 0 {
-		board = s.ApplyOnce(game)
-		cnt--
+	board := DeepCopyBoard(game.board)
+	for !s.checkComplete(board) {
+		deduced := s.ApplyOnce(game)
+		if reflect.DeepEqual(board, deduced) {
+			return board
+		}
+		board = deduced
 	}
 	return board
 }
