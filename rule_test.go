@@ -105,6 +105,7 @@ func TestOverlapExpansionRule(t *testing.T) {
 		{[]Cell{U, U, U, U, U}, []int{1, 1}, nil},
 		{[]Cell{U, B, U, U, U, U}, []int{3}, []Cell{U, B, B, U, U, U}},
 		{[]Cell{U, U, U, U, B, U}, []int{3}, []Cell{U, U, U, B, B, U}},
+		{[]Cell{W, U, B, U, U, U, U}, []int{3}, []Cell{W, U, B, B, U, U, U}},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
@@ -153,7 +154,8 @@ func TestBlockSatisfiedRule(t *testing.T) {
 	}{
 		{[]Cell{U}, []int{1, 1}, nil},
 		{[]Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
-		{[]Cell{U, B, B, U, U}, []int{2}, []Cell{W, B, B, W, U}},
+		{[]Cell{U, U, B, B, U, U}, []int{2}, []Cell{U, W, B, B, W, U}},
+		{[]Cell{U, U, B, B, U, U}, []int{1, 2}, []Cell{U, W, B, B, W, U}},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
