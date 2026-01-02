@@ -51,29 +51,32 @@ func (r MinimumSpacingRule) Name() string {
 
 func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
 
-	// 判定部分
+	segs := splitByWhite(hc.Cells)
+	if len(segs) != 1 {
+		return nil
+	}
+
+	cells := segs[0]
 	var sum int
 	for _, h := range hc.Hints {
 		sum += h
 	}
-	if sum+(len(hc.Hints)-1) != len(hc.Cells) {
+	if sum+(len(hc.Hints)-1) != len(cells) {
 		return nil
 	}
 
-	// 生成部分
-	deduced := make([]Cell, len(hc.Cells))
 	var last int
 	for i, hint := range hc.Hints {
 		for range hint {
-			deduced[last] = CellBlack
+			cells[last] = CellBlack
 			last++
 		}
 		if i != len(hc.Hints)-1 {
-			deduced[last] = CellWhite
+			cells[last] = CellWhite
 			last++
 		}
 	}
-	return deduced
+	return hc.Cells
 }
 
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定

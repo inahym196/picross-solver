@@ -52,6 +52,7 @@ func TestMinimumSpacingRule(t *testing.T) {
 		{[]Cell{U, U, U}, []int{1, 1}, []Cell{B, W, B}},
 		{[]Cell{U, U, U}, []int{3}, []Cell{B, B, B}},
 		{[]Cell{U, U, U, U}, []int{2, 1}, []Cell{B, B, W, B}},
+		{[]Cell{W, U, U, U, U}, []int{1, 2}, []Cell{W, B, W, B, B}},
 		{[]Cell{U, U, U, U, U}, []int{1, 1, 1}, []Cell{B, W, B, W, B}},
 		{[]Cell{U, U, U, U, U, U}, []int{1, 2, 1}, []Cell{B, W, B, B, W, B}},
 	}
