@@ -122,14 +122,16 @@ func (s Solver) checkComplete(board Board) bool {
 	return true
 }
 
-func (s Solver) ApplyMany(game Game) Board {
+func (s Solver) ApplyMany(game Game) (Board, int) {
 	board := DeepCopyBoard(game.board)
+	n := 0
 	for !s.checkComplete(board) {
+		n++
 		deduced := s.ApplyOnce(game)
 		if reflect.DeepEqual(board, deduced) {
-			return board
+			return board, n
 		}
 		board = deduced
 	}
-	return board
+	return board, n
 }
