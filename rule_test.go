@@ -79,6 +79,8 @@ func TestOverlapFillRule(t *testing.T) {
 		{[]Cell{U, U, U}, []int{2}, []Cell{U, B, U}},
 		{[]Cell{U, U, U, U}, []int{3}, []Cell{U, B, B, U}},
 		{[]Cell{U, U, U, U, U}, []int{2, 1}, []Cell{U, B, U, U, U}},
+		{[]Cell{W, U, W, U, U}, []int{1, 2}, []Cell{W, B, W, B, B}},
+		{[]Cell{W, U, W, U, U, U}, []int{1, 2}, []Cell{W, B, W, U, B, U}},
 		{[]Cell{U, U, U, U, U, U}, []int{2, 2}, []Cell{U, B, U, U, B, U}},
 	}
 	for i, tt := range tests {
