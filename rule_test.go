@@ -122,12 +122,12 @@ func TestEdgeExpansionRule(t *testing.T) {
 		hints    []int
 		expected []Cell
 	}{
-		{[]Cell{B, U, U}, []int{2}, []Cell{B, B, U}},
-		{[]Cell{U, U, B}, []int{2}, []Cell{U, B, B}},
-		{[]Cell{W, B, U, U}, []int{2}, []Cell{W, B, B, U}},
-		{[]Cell{U, U, B, W}, []int{2}, []Cell{U, B, B, W}},
-		{[]Cell{W, W, B, U, U, U}, []int{3}, []Cell{W, W, B, B, B, U}},
-		{[]Cell{U, U, U, B, W, W}, []int{3}, []Cell{U, B, B, B, W, W}},
+		{[]Cell{B, U, U}, []int{2}, []Cell{B, B, W}},
+		{[]Cell{U, U, B}, []int{2}, []Cell{W, B, B}},
+		{[]Cell{W, B, U, U}, []int{2}, []Cell{W, B, B, W}},
+		{[]Cell{U, U, B, W}, []int{2}, []Cell{W, B, B, W}},
+		{[]Cell{W, W, B, U, U, U}, []int{3}, []Cell{W, W, B, B, B, W}},
+		{[]Cell{U, U, U, B, W, W}, []int{3}, []Cell{W, B, B, B, W, W}},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {

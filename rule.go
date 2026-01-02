@@ -186,6 +186,9 @@ func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 		seg[i] = CellBlack
 		changed = true
 	}
+	if len(seg) > hint {
+		seg[hint] = CellWhite
+	}
 	return changed
 }
 
