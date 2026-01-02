@@ -141,6 +141,9 @@ func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 		for slices.Contains(cells[start:pos+1], CellWhite) {
 			pos := r.prevPlacablePos(cells, start-1)
 			start = pos - h + 1
+			if start < 0 {
+				return nil
+			}
 		}
 		starts[i] = start
 		pos = start - 2
