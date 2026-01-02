@@ -86,10 +86,10 @@ func TestE2E(t *testing.T) {
 			colHints: ParseHints("1 3 1-1-1 1 1"),
 			expected: []string{
 				"__#__",
-				"_#__",
+				"_#___",
 				"#####",
-				"_#__",
-				"__#_",
+				"_#___",
+				"__#__",
 			},
 		},
 	}
