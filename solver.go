@@ -5,25 +5,6 @@ import (
 	"slices"
 )
 
-type LineKind uint8
-
-const (
-	LineKindRow LineKind = iota
-	LineKindColumn
-)
-
-func (lk LineKind) String() string {
-	switch lk {
-	case LineKindRow:
-		return "Row"
-	case LineKindColumn:
-		return "Column"
-	default:
-		panic("invalid LineKind")
-	}
-
-}
-
 type HintedCells struct {
 	Cells []Cell
 	Hints []int
@@ -31,11 +12,6 @@ type HintedCells struct {
 
 func NewHintedCells(cells []Cell, hints []int) HintedCells {
 	return HintedCells{cells, hints}
-}
-
-type Line struct {
-	Kind  LineKind
-	Index int
 }
 
 type lineAccessor struct {
