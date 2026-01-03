@@ -5,25 +5,6 @@ import (
 	"slices"
 )
 
-type LineKind uint8
-
-const (
-	LineKindRow LineKind = iota
-	LineKindColumn
-)
-
-func (lk LineKind) String() string {
-	switch lk {
-	case LineKindRow:
-		return "Row"
-	case LineKindColumn:
-		return "Column"
-	default:
-		panic("invalid LineKind")
-	}
-
-}
-
 type HintedCells struct {
 	Cells []Cell
 	Hints []int
@@ -33,38 +14,62 @@ func NewHintedCells(cells []Cell, hints []int) HintedCells {
 	return HintedCells{cells, hints}
 }
 
-type Line struct {
-	Kind  LineKind
-	Index int
+type lineKind uint8
+
+const (
+	lineKindRow lineKind = iota
+	lineKindColumn
+)
+
+type lineRef struct {
+	kind  lineKind
+	index int
 }
 
-type lineAccessor struct {
-	Get func() []Cell
-	Set func(cells []Cell)
+type lineAccessor interface {
+	Get() []Cell
+	Set(cells []Cell)
+	Ref() lineRef
 }
 
-func rowAccessor(board Board, row int) lineAccessor {
-	return lineAccessor{
-		Get: func() []Cell { return slices.Clone(board[row]) },
-		Set: func(cells []Cell) { copy(board[row], cells) },
+type rowAccessor struct {
+	index int
+	board *Board
+}
+
+func (acc rowAccessor) Get() []Cell {
+	return slices.Clone((*acc.board)[acc.index])
+}
+
+func (acc rowAccessor) Set(cells []Cell) {
+	copy((*acc.board)[acc.index], cells)
+}
+
+func (acc rowAccessor) Ref() lineRef {
+	return lineRef{lineKindRow, acc.index}
+}
+
+type colAccessor struct {
+	index int
+	board *Board
+}
+
+func (acc colAccessor) Get() []Cell {
+	cells := make([]Cell, acc.board.GetRows())
+	for i := range *acc.board {
+		cells[i] = (*acc.board)[i][acc.index]
+	}
+	return cells
+}
+
+func (acc colAccessor) Set(cells []Cell) {
+	for i := range cells {
+		(*acc.board)[i][acc.index] = cells[i]
 	}
 }
 
-func colAccessor(board Board, col int) lineAccessor {
-	return lineAccessor{
-		Get: func() []Cell {
-			cells := make([]Cell, board.GetRows())
-			for i := range board {
-				cells[i] = board[i][col]
-			}
-			return cells
-		},
-		Set: func(cells []Cell) {
-			for i := range cells {
-				board[i][col] = cells[i]
-			}
-		},
-	}
+func (acc colAccessor) Ref() lineRef {
+	return lineRef{lineKindColumn, acc.index}
 }
 
 type Solver struct {
@@ -103,11 +108,11 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
 func (s Solver) ApplyOnce(game Game) Board {
 	board := slices.Clone(game.board)
 	for i := range game.rowHints {
-		acc := rowAccessor(board, i)
+		acc := rowAccessor{i, &board}
 		s.ApplyLine(acc, game.rowHints[i])
 	}
 	for i := range game.colHints {
-		acc := colAccessor(board, i)
+		acc := colAccessor{i, &board}
 		s.ApplyLine(acc, game.colHints[i])
 	}
 	return board
