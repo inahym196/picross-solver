@@ -155,7 +155,7 @@ func TestBlockSatisfiedRule(t *testing.T) {
 		{[]Cell{U}, []int{1, 1}, nil},
 		{[]Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
 		{[]Cell{U, U, B, B, U, U}, []int{2}, []Cell{U, W, B, B, W, U}},
-		{[]Cell{U, U, B, B, U, U}, []int{1, 2}, []Cell{U, W, B, B, W, U}},
+		{[]Cell{B, U, U, B, B, U}, []int{1, 2}, []Cell{B, U, W, B, B, W}},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
