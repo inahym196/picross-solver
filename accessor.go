@@ -1,6 +1,9 @@
 package picrosssolver
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
 
 type lineKind uint8
 
@@ -9,9 +12,24 @@ const (
 	lineKindColumn
 )
 
+func (kind lineKind) String() string {
+	switch kind {
+	case lineKindRow:
+		return "Row"
+	case lineKindColumn:
+		return "Col"
+	default:
+		panic("invalid lineKind")
+	}
+}
+
 type lineRef struct {
 	kind  lineKind
 	index int
+}
+
+func (ref lineRef) String() string {
+	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
 }
 
 type lineAccessor interface {
