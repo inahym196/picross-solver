@@ -393,13 +393,12 @@ func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
 	}
 
 	deduced := make([]Cell, len(hc.Cells))
+	copy(deduced, hc.Cells)
 	changed := false
 	for i, c := range hc.Cells {
 		if c == CellUndetermined {
 			deduced[i] = CellWhite
 			changed = true
-		} else {
-			deduced[i] = c
 		}
 	}
 
