@@ -274,52 +274,67 @@ func (r BlockSatisfiedRule) maxHint(hints []int) int {
 	return hint
 }
 
-func findSingleBlackBlock(cells []Cell) (start, length int) {
-	start = -1
-	length = 0
+type Block struct {
+	start  int
+	length int
+}
 
-	i := 0
-	for i < len(cells) {
-		if cells[i] != CellBlack {
-			i++
-			continue
-		}
-
-		if start != -1 {
-			return -1, 0
-		}
-
-		start = i
-		for i < len(cells) && cells[i] == CellBlack {
-			length++
-			i++
+func nextBlock(cells []Cell, start int) *Block {
+	for cells[start] != CellBlack {
+		start++
+		if start >= len(cells) {
+			return nil
 		}
 	}
+	length := 0
+	end := start
+	for end < len(cells) && cells[end] == CellBlack {
+		end++
+		length++
+	}
+	return &Block{start, length}
+}
 
-	return start, length
+func findBlocksN(cells []Cell, n int) []Block {
+	var blocks []Block
+	for i := 0; i < len(cells); i++ {
+		block := nextBlock(cells, i)
+		if block == nil {
+			return blocks
+		}
+		if block.length != n {
+			continue
+		}
+		blocks = append(blocks, *block)
+		i = block.start + block.length + 1
+	}
+	return blocks
 }
 
 func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
-
-	hint := r.maxHint(hc.Hints)
 	cells := hc.Cells
+	hint := r.maxHint(hc.Hints)
+	if hint == 0 {
+		return nil
+	}
 
-	start, length := findSingleBlackBlock(cells)
-	if length != hint {
+	blocks := findBlocksN(cells, hint)
+	if len(blocks) == 0 {
 		return nil
 	}
 
 	changed := false
-
-	if start-1 >= 0 && cells[start-1] == CellUndetermined {
-		cells[start-1] = CellWhite
-		changed = true
-	}
-
-	end := start + length
-	if end < len(cells) && cells[end] == CellUndetermined {
-		cells[end] = CellWhite
-		changed = true
+	for _, block := range blocks {
+		prevStart := block.start - 1
+		if prevStart >= 0 && cells[prevStart] == CellUndetermined {
+			cells[prevStart] = CellWhite
+			changed = true
+		}
+		afterEnd := block.start + block.length
+		if afterEnd < len(cells) && cells[afterEnd] == CellUndetermined {
+			cells[afterEnd] = CellWhite
+			changed = true
+		}
 	}
 
 	if !changed {
