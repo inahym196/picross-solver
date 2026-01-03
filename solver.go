@@ -35,14 +35,14 @@ func NewSolver() Solver {
 func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 	for _, rule := range s.rules {
-		cells := acc.Get()
+		cells := acc.get()
 		if slices.Index(cells, CellUndetermined) == -1 {
 			return
 		}
 		hc := NewHintedCells(slices.Clone(cells), slices.Clone(hints))
 		updated := rule.Deduce(hc)
 		if updated != nil && !reflect.DeepEqual(cells, updated) {
-			acc.Set(updated)
+			acc.set(updated)
 		}
 	}
 }

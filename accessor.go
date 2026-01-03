@@ -15,9 +15,9 @@ type lineRef struct {
 }
 
 type lineAccessor interface {
-	Get() []Cell
-	Set(cells []Cell)
-	Ref() lineRef
+	get() []Cell
+	set(cells []Cell)
+	ref() lineRef
 }
 
 type rowAccessor struct {
@@ -25,15 +25,17 @@ type rowAccessor struct {
 	board *Board
 }
 
-func (acc rowAccessor) Get() []Cell {
+var _ lineAccessor = rowAccessor{}
+
+func (acc rowAccessor) get() []Cell {
 	return slices.Clone((*acc.board)[acc.index])
 }
 
-func (acc rowAccessor) Set(cells []Cell) {
+func (acc rowAccessor) set(cells []Cell) {
 	copy((*acc.board)[acc.index], cells)
 }
 
-func (acc rowAccessor) Ref() lineRef {
+func (acc rowAccessor) ref() lineRef {
 	return lineRef{lineKindRow, acc.index}
 }
 
@@ -42,7 +44,9 @@ type colAccessor struct {
 	board *Board
 }
 
-func (acc colAccessor) Get() []Cell {
+var _ lineAccessor = colAccessor{}
+
+func (acc colAccessor) get() []Cell {
 	cells := make([]Cell, acc.board.GetRows())
 	for i := range *acc.board {
 		cells[i] = (*acc.board)[i][acc.index]
@@ -50,12 +54,12 @@ func (acc colAccessor) Get() []Cell {
 	return cells
 }
 
-func (acc colAccessor) Set(cells []Cell) {
+func (acc colAccessor) set(cells []Cell) {
 	for i := range cells {
 		(*acc.board)[i][acc.index] = cells[i]
 	}
 }
 
-func (acc colAccessor) Ref() lineRef {
+func (acc colAccessor) ref() lineRef {
 	return lineRef{lineKindColumn, acc.index}
 }
