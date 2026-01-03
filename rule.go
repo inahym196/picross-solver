@@ -86,27 +86,18 @@ func (r OverlapFillRule) Name() string {
 	return "OverlapFillRule"
 }
 
-func (r OverlapFillRule) nextPlacablePos(cells []Cell, start int) int {
-	for i := start; i < len(cells); i++ {
-		if cells[i] != CellWhite {
-			return i
-		}
-	}
-	return len(cells)
-}
-
 func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
 	starts := make([]int, len(hints))
 	pos := 0
 
 	for i, h := range hints {
-		pos = r.nextPlacablePos(cells, pos)
-		if pos+h > len(cells) {
+		pos += slices.IndexFunc(cells[pos:], func(c Cell) bool { return c != CellWhite })
+		if pos == -1 || pos+h > len(cells) {
 			return nil
 		}
 		for slices.Contains(cells[pos:pos+h], CellWhite) {
-			pos = r.nextPlacablePos(cells, pos+1)
-			if pos+h > len(cells) {
+			pos += slices.IndexFunc(cells[pos+1:], func(c Cell) bool { return c != CellWhite })
+			if pos == -1 || pos+h > len(cells) {
 				return nil
 			}
 		}
