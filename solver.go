@@ -24,6 +24,7 @@ type applyLog struct {
 
 func (log applyLog) String() string {
 	return fmt.Sprintf("%s %s %v -> %v", log.ruleName, log.lineRef, log.before, log.after)
+	hoge
 }
 
 type Solver struct {
