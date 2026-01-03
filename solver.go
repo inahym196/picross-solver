@@ -14,64 +14,6 @@ func NewHintedCells(cells []Cell, hints []int) HintedCells {
 	return HintedCells{cells, hints}
 }
 
-type lineKind uint8
-
-const (
-	lineKindRow lineKind = iota
-	lineKindColumn
-)
-
-type lineRef struct {
-	kind  lineKind
-	index int
-}
-
-type lineAccessor interface {
-	Get() []Cell
-	Set(cells []Cell)
-	Ref() lineRef
-}
-
-type rowAccessor struct {
-	index int
-	board *Board
-}
-
-func (acc rowAccessor) Get() []Cell {
-	return slices.Clone((*acc.board)[acc.index])
-}
-
-func (acc rowAccessor) Set(cells []Cell) {
-	copy((*acc.board)[acc.index], cells)
-}
-
-func (acc rowAccessor) Ref() lineRef {
-	return lineRef{lineKindRow, acc.index}
-}
-
-type colAccessor struct {
-	index int
-	board *Board
-}
-
-func (acc colAccessor) Get() []Cell {
-	cells := make([]Cell, acc.board.GetRows())
-	for i := range *acc.board {
-		cells[i] = (*acc.board)[i][acc.index]
-	}
-	return cells
-}
-
-func (acc colAccessor) Set(cells []Cell) {
-	for i := range cells {
-		(*acc.board)[i][acc.index] = cells[i]
-	}
-}
-
-func (acc colAccessor) Ref() lineRef {
-	return lineRef{lineKindColumn, acc.index}
-}
-
 type Solver struct {
 	rules []Rule
 }
@@ -93,14 +35,14 @@ func NewSolver() Solver {
 func (s Solver) ApplyLine(acc lineAccessor, hints []int) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 	for _, rule := range s.rules {
-		cells := acc.Get()
+		cells := acc.get()
 		if slices.Index(cells, CellUndetermined) == -1 {
 			return
 		}
 		hc := NewHintedCells(slices.Clone(cells), slices.Clone(hints))
 		updated := rule.Deduce(hc)
 		if updated != nil && !reflect.DeepEqual(cells, updated) {
-			acc.Set(updated)
+			acc.set(updated)
 		}
 	}
 }
