@@ -14,9 +14,22 @@ func NewHintedCells(cells []Cell, hints []int) HintedCells {
 	return HintedCells{cells, hints}
 }
 
+type lineKind uint8
+
+const (
+	lineKindRow lineKind = iota
+	lineKindColumn
+)
+
+type lineRef struct {
+	kind  lineKind
+	index int
+}
+
 type lineAccessor interface {
 	Get() []Cell
 	Set(cells []Cell)
+	Ref() lineRef
 }
 
 type rowAccessor struct {
@@ -30,6 +43,10 @@ func (acc rowAccessor) Get() []Cell {
 
 func (acc rowAccessor) Set(cells []Cell) {
 	copy((*acc.board)[acc.index], cells)
+}
+
+func (acc rowAccessor) Ref() lineRef {
+	return lineRef{lineKindRow, acc.index}
 }
 
 type colAccessor struct {
@@ -49,6 +66,10 @@ func (acc colAccessor) Set(cells []Cell) {
 	for i := range cells {
 		(*acc.board)[i][acc.index] = cells[i]
 	}
+}
+
+func (acc colAccessor) Ref() lineRef {
+	return lineRef{lineKindColumn, acc.index}
 }
 
 type Solver struct {
