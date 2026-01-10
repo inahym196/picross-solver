@@ -45,18 +45,17 @@ func NewSolver() Solver {
 	return Solver{rules}
 }
 
-func (s Solver) ApplyLine(acc lineAccessor, hints []int) []applyLog {
-	var logs []applyLog
-
+func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, logs []applyLog) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 	for _, rule := range s.rules {
 		before := acc.get()
 		if slices.Index(before, CellUndetermined) == -1 {
-			return logs
+			return changed, logs
 		}
 		hc := NewHintedCells(slices.Clone(before), slices.Clone(hints))
 		updated := rule.Deduce(hc)
 		if updated != nil && !reflect.DeepEqual(before, updated) {
+			changed = true
 			acc.set(updated)
 			logs = append(logs, applyLog{
 				ruleName: rule.Name(),
@@ -67,22 +66,27 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) []applyLog {
 			})
 		}
 	}
-	return logs
+	return changed, logs
 }
 
-func (s Solver) ApplyOnce(game Game) (Board, []applyLog) {
-	var logs []applyLog
+func (s Solver) ApplyOnce(game Game) (board Board, changed bool, logs []applyLog) {
 
-	board := slices.Clone(game.board)
+	board = slices.Clone(game.board)
 	for i := range game.rowHints {
-		lineLogs := s.ApplyLine(rowAccessor{i, &board}, game.rowHints[i])
-		logs = append(logs, lineLogs...)
+		changedLine, lineLogs := s.ApplyLine(rowAccessor{i, &board}, game.rowHints[i])
+		if changedLine {
+			logs = append(logs, lineLogs...)
+			changed = true
+		}
 	}
 	for i := range game.colHints {
-		lineLogs := s.ApplyLine(colAccessor{i, &board}, game.colHints[i])
-		logs = append(logs, lineLogs...)
+		changedLine, lineLogs := s.ApplyLine(colAccessor{i, &board}, game.colHints[i])
+		if changedLine {
+			logs = append(logs, lineLogs...)
+			changed = true
+		}
 	}
-	return board, logs
+	return board, changed, logs
 }
 
 func (s Solver) checkComplete(board Board) bool {
@@ -100,8 +104,8 @@ func (s Solver) ApplyMany(game Game) (Board, int, []applyLog) {
 	n := 0
 	for !s.checkComplete(board) {
 		n++
-		deduced, lineLogs := s.ApplyOnce(game)
-		if reflect.DeepEqual(board, deduced) {
+		deduced, changedLine, lineLogs := s.ApplyOnce(game)
+		if !changedLine {
 			return board, n, logs
 		}
 		board = deduced
