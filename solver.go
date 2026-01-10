@@ -17,13 +17,14 @@ func NewHintedCells(cells []Cell, hints []int) HintedCells {
 
 type applyLog struct {
 	ruleName string
+	hints    []int
 	lineRef  lineRef
 	before   []Cell
 	after    []Cell
 }
 
 func (log applyLog) String() string {
-	return fmt.Sprintf("%s %s %v -> %v", log.ruleName, log.lineRef, log.before, log.after)
+	return fmt.Sprintf("%s %s %v %v -> %v", log.ruleName, log.lineRef, log.hints, log.before, log.after)
 }
 
 type Solver struct {
@@ -59,6 +60,7 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) []applyLog {
 			acc.set(updated)
 			logs = append(logs, applyLog{
 				ruleName: rule.Name(),
+				hints:    hints,
 				lineRef:  acc.ref(),
 				before:   before,
 				after:    updated,
