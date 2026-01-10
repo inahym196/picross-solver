@@ -62,9 +62,9 @@ func (b Board) Print() []string {
 			case CellBlack:
 				s.WriteString("#")
 			case CellWhite:
-				s.WriteString("X")
-			case CellUndetermined:
 				s.WriteString("_")
+			case CellUndetermined:
+				s.WriteString("?")
 			}
 		}
 		ss = append(ss, s.String())
