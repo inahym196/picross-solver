@@ -6,7 +6,7 @@ import (
 
 type Rule interface {
 	Name() string
-	Deduce(HintedCells) []Cell
+	Deduce(lineView) []Cell
 }
 
 func splitByWhite(cells []Cell) [][]Cell {
@@ -32,14 +32,15 @@ func (e ZeroHintRule) Name() string {
 	return "ZeroHintRule"
 }
 
-func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
-	if len(hc.Hints) != 1 || hc.Hints[0] != 0 {
+func (r ZeroHintRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
+	if len(line.Hints) != 1 || line.Hints[0] != 0 {
 		return nil
 	}
-	for i := range hc.Cells {
-		hc.Cells[i] = CellWhite
+	for i := range cells {
+		cells[i] = CellWhite
 	}
-	return hc.Cells
+	return cells
 }
 
 // 黒と白の配置が一意に決まる
@@ -49,34 +50,35 @@ func (r MinimumSpacingRule) Name() string {
 	return "MinimumSpacingRule"
 }
 
-func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
+func (r MinimumSpacingRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
 
-	segs := splitByWhite(hc.Cells)
+	segs := splitByWhite(cells)
 	if len(segs) != 1 {
 		return nil
 	}
 
-	cells := segs[0]
+	seg := segs[0]
 	var sum int
-	for _, h := range hc.Hints {
+	for _, h := range line.Hints {
 		sum += h
 	}
-	if sum+(len(hc.Hints)-1) != len(cells) {
+	if sum+(len(line.Hints)-1) != len(seg) {
 		return nil
 	}
 
 	var last int
-	for i, hint := range hc.Hints {
+	for i, hint := range line.Hints {
 		for range hint {
-			cells[last] = CellBlack
+			seg[last] = CellBlack
 			last++
 		}
-		if i != len(hc.Hints)-1 {
-			cells[last] = CellWhite
+		if i != len(line.Hints)-1 {
+			seg[last] = CellWhite
 			last++
 		}
 	}
-	return hc.Cells
+	return cells
 }
 
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定
@@ -150,18 +152,18 @@ func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 	return starts
 }
 
-func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
-	cells := hc.Cells
+func (r OverlapFillRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
 
-	leftStarts := r.leftAlignedStarts(cells, hc.Hints)
-	rightStarts := r.rightAlignedStarts(cells, hc.Hints)
+	leftStarts := r.leftAlignedStarts(cells, line.Hints)
+	rightStarts := r.rightAlignedStarts(cells, line.Hints)
 
 	if leftStarts == nil || rightStarts == nil {
 		return nil
 	}
 
 	changed := false
-	for i, hint := range hc.Hints {
+	for i, hint := range line.Hints {
 		left := leftStarts[i]
 		right := rightStarts[i]
 
@@ -202,14 +204,14 @@ func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	return changed
 }
 
-func (r OverlapExpansionRule) Deduce(hc HintedCells) []Cell {
-	cells := hc.Cells
+func (r OverlapExpansionRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
 
-	firstHint := hc.Hints[0]
+	firstHint := line.Hints[0]
 	changed1 := r.applyLeft(cells, firstHint)
 
 	slices.Reverse(cells)
-	lastHint := hc.Hints[len(hc.Hints)-1]
+	lastHint := line.Hints[len(line.Hints)-1]
 	changed2 := r.applyLeft(cells, lastHint)
 
 	if !changed1 && !changed2 {
@@ -241,14 +243,14 @@ func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	return changed
 }
 
-func (r EdgeExpansionRule) Deduce(hc HintedCells) []Cell {
-	cells := hc.Cells
+func (r EdgeExpansionRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
 
-	firstHint := hc.Hints[0]
+	firstHint := line.Hints[0]
 	changed1 := r.applyLeft(cells, firstHint)
 
 	slices.Reverse(cells)
-	lastHint := hc.Hints[len(hc.Hints)-1]
+	lastHint := line.Hints[len(line.Hints)-1]
 	changed2 := r.applyLeft(cells, lastHint)
 
 	if !changed1 && !changed2 {
@@ -310,9 +312,9 @@ func findBlocksN(cells []Cell, n int) []Block {
 	return blocks
 }
 
-func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
-	cells := hc.Cells
-	hint := r.maxHint(hc.Hints)
+func (r BlockSatisfiedRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
+	hint := r.maxHint(line.Hints)
 	if hint == 0 {
 		return nil
 	}
@@ -357,11 +359,13 @@ func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
 	return hint
 }
 
-func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
-	hint := r.minHint(hc.Hints)
+func (r PruneImpossibleSegmentRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
+
+	hint := r.minHint(line.Hints)
 	changed := false
 
-	segs := splitByWhite(hc.Cells)
+	segs := splitByWhite(cells)
 	for i, seg := range segs {
 		if len(seg) < hint {
 			changed = true
@@ -373,7 +377,7 @@ func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
 	if !changed {
 		return nil
 	}
-	return hc.Cells
+	return cells
 }
 
 // すべての hint を満たした後の残りは白
@@ -383,14 +387,16 @@ func (r FillRemainingWhiteRule) Name() string {
 	return "FillRemainingWhiteRule"
 }
 
-func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
+func (r FillRemainingWhiteRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
+
 	sumHints := 0
-	for _, h := range hc.Hints {
+	for _, h := range line.Hints {
 		sumHints += h
 	}
 
 	blackCount := 0
-	for _, c := range hc.Cells {
+	for _, c := range cells {
 		if c == CellBlack {
 			blackCount++
 		}
@@ -400,12 +406,10 @@ func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
 		return nil
 	}
 
-	deduced := make([]Cell, len(hc.Cells))
-	copy(deduced, hc.Cells)
 	changed := false
-	for i, c := range hc.Cells {
+	for i, c := range cells {
 		if c == CellUndetermined {
-			deduced[i] = CellWhite
+			cells[i] = CellWhite
 			changed = true
 		}
 	}
@@ -413,7 +417,7 @@ func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
 	if !changed {
 		return nil
 	}
-	return deduced
+	return cells
 }
 
 // 仮に黒／白を置き、矛盾が出たら逆を確定
