@@ -37,6 +37,10 @@ type lineView struct {
 	Hints []int
 }
 
+func (line lineView) IsFilled() bool {
+	return slices.Index(line.Cells, CellUndetermined) == -1
+}
+
 type lineAccessor struct {
 	board *Board
 	ref   lineRef

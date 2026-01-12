@@ -2,7 +2,6 @@ package picrosssolver
 
 import (
 	"errors"
-	"slices"
 	"strings"
 )
 
@@ -35,14 +34,6 @@ func newBoard(height, width int) Board {
 		board[i] = make([]Cell, width)
 	}
 	return board
-}
-
-func DeepCopyBoard(src Board) Board {
-	dst := make(Board, len(src))
-	for i := range src {
-		dst[i] = slices.Clone(src[i])
-	}
-	return dst
 }
 
 func (b Board) GetRows() int {

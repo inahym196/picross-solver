@@ -1,6 +1,9 @@
 package picrosssolver
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 type deduction struct {
 	ruleName string
@@ -31,4 +34,31 @@ func newDeducer() deducer {
 			FillRemainingWhiteRule{},
 		},
 	}
+}
+
+func (d deducer) DeduceLine(line lineView, ref lineRef) (deds []deduction) {
+	current := line
+
+	for _, rule := range d.rules {
+		if current.IsFilled() {
+			return deds
+		}
+
+		before := slices.Clone(current.Cells)
+		updated := rule.Deduce(current)
+
+		if updated == nil || slices.Equal(before, updated) {
+			continue
+		}
+
+		deds = append(deds, deduction{
+			ruleName: rule.Name(),
+			hints:    current.Hints,
+			lineRef:  ref,
+			before:   before,
+			after:    updated,
+		})
+		current.Cells = updated
+	}
+	return deds
 }
