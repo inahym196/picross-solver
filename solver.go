@@ -48,7 +48,7 @@ func NewSolver() Solver {
 func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, logs []applyLog) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
 	for _, rule := range s.rules {
-		before := acc.get()
+		before := acc.Cells()
 		if slices.Index(before, CellUndetermined) == -1 {
 			return changed, logs
 		}
@@ -56,11 +56,11 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, logs []a
 		updated := rule.Deduce(hc)
 		if updated != nil && !reflect.DeepEqual(before, updated) {
 			changed = true
-			acc.set(updated)
+			acc.Update(updated)
 			logs = append(logs, applyLog{
 				ruleName: rule.Name(),
 				hints:    hints,
-				lineRef:  acc.ref(),
+				lineRef:  acc.Ref(),
 				before:   before,
 				after:    updated,
 			})
@@ -73,14 +73,16 @@ func (s Solver) ApplyOnce(game Game) (board Board, changed bool, logs []applyLog
 
 	board = slices.Clone(game.board)
 	for i := range game.rowHints {
-		changedLine, lineLogs := s.ApplyLine(rowAccessor{i, &board}, game.rowHints[i])
+		acc := lineAccessor{&game.board, lineRef{lineKindRow, i}}
+		changedLine, lineLogs := s.ApplyLine(acc, game.rowHints[i])
 		if changedLine {
 			logs = append(logs, lineLogs...)
 			changed = true
 		}
 	}
 	for i := range game.colHints {
-		changedLine, lineLogs := s.ApplyLine(colAccessor{i, &board}, game.colHints[i])
+		acc := lineAccessor{&game.board, lineRef{lineKindColumn, i}}
+		changedLine, lineLogs := s.ApplyLine(acc, game.colHints[i])
 		if changedLine {
 			logs = append(logs, lineLogs...)
 			changed = true

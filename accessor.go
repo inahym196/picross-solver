@@ -32,52 +32,37 @@ func (ref lineRef) String() string {
 	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
 }
 
-type lineAccessor interface {
-	get() []Cell
-	set(cells []Cell)
-	ref() lineRef
-}
-
-type rowAccessor struct {
-	index int
+type lineAccessor struct {
 	board *Board
+	ref   lineRef
 }
 
-var _ lineAccessor = rowAccessor{}
-
-func (acc rowAccessor) get() []Cell {
-	return slices.Clone((*acc.board)[acc.index])
-}
-
-func (acc rowAccessor) set(cells []Cell) {
-	copy((*acc.board)[acc.index], cells)
-}
-
-func (acc rowAccessor) ref() lineRef {
-	return lineRef{lineKindRow, acc.index}
-}
-
-type colAccessor struct {
-	index int
-	board *Board
-}
-
-var _ lineAccessor = colAccessor{}
-
-func (acc colAccessor) get() []Cell {
-	cells := make([]Cell, acc.board.GetRows())
-	for i := range *acc.board {
-		cells[i] = (*acc.board)[i][acc.index]
-	}
-	return cells
-}
-
-func (acc colAccessor) set(cells []Cell) {
-	for i := range cells {
-		(*acc.board)[i][acc.index] = cells[i]
+func (acc lineAccessor) Cells() []Cell {
+	switch acc.ref.kind {
+	case lineKindRow:
+		return slices.Clone((*acc.board)[acc.ref.index])
+	case lineKindColumn:
+		cells := make([]Cell, acc.board.GetRows())
+		for i := range *acc.board {
+			cells[i] = (*acc.board)[i][acc.ref.index]
+		}
+		return cells
+	default:
+		panic("invalid linekind accessor")
 	}
 }
 
-func (acc colAccessor) ref() lineRef {
-	return lineRef{lineKindColumn, acc.index}
+func (acc lineAccessor) Update(cells []Cell) {
+	switch acc.ref.kind {
+	case lineKindRow:
+		copy((*acc.board)[acc.ref.index], cells)
+	case lineKindColumn:
+		for i := range cells {
+			(*acc.board)[i][acc.ref.index] = cells[i]
+		}
+	default:
+		panic("invalid linekind accessor")
+	}
 }
+
+func (acc lineAccessor) Ref() lineRef { return acc.ref }
