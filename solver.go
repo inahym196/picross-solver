@@ -6,11 +6,6 @@ import (
 	"slices"
 )
 
-type lineView struct {
-	Cells []Cell
-	Hints []int
-}
-
 type applyLog struct {
 	ruleName string
 	hints    []int

@@ -32,6 +32,11 @@ func (ref lineRef) String() string {
 	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
 }
 
+type lineView struct {
+	Cells []Cell
+	Hints []int
+}
+
 type lineAccessor struct {
 	board *Board
 	ref   lineRef
