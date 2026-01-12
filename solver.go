@@ -6,13 +6,9 @@ import (
 	"slices"
 )
 
-type HintedCells struct {
+type lineView struct {
 	Cells []Cell
 	Hints []int
-}
-
-func NewHintedCells(cells []Cell, hints []int) HintedCells {
-	return HintedCells{cells, hints}
 }
 
 type applyLog struct {
@@ -52,8 +48,8 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, logs []a
 		if slices.Index(before, CellUndetermined) == -1 {
 			return changed, logs
 		}
-		hc := NewHintedCells(slices.Clone(before), slices.Clone(hints))
-		updated := rule.Deduce(hc)
+		line := lineView{slices.Clone(before), slices.Clone(hints)}
+		updated := rule.Deduce(line)
 		if updated != nil && !reflect.DeepEqual(before, updated) {
 			changed = true
 			acc.Update(updated)

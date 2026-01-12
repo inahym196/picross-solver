@@ -6,7 +6,7 @@ import (
 
 type Rule interface {
 	Name() string
-	Deduce(HintedCells) []Cell
+	Deduce(lineView) []Cell
 }
 
 func splitByWhite(cells []Cell) [][]Cell {
@@ -32,7 +32,7 @@ func (e ZeroHintRule) Name() string {
 	return "ZeroHintRule"
 }
 
-func (r ZeroHintRule) Deduce(hc HintedCells) []Cell {
+func (r ZeroHintRule) Deduce(hc lineView) []Cell {
 	if len(hc.Hints) != 1 || hc.Hints[0] != 0 {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (r MinimumSpacingRule) Name() string {
 	return "MinimumSpacingRule"
 }
 
-func (r MinimumSpacingRule) Deduce(hc HintedCells) []Cell {
+func (r MinimumSpacingRule) Deduce(hc lineView) []Cell {
 
 	segs := splitByWhite(hc.Cells)
 	if len(segs) != 1 {
@@ -150,7 +150,7 @@ func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 	return starts
 }
 
-func (r OverlapFillRule) Deduce(hc HintedCells) []Cell {
+func (r OverlapFillRule) Deduce(hc lineView) []Cell {
 	cells := hc.Cells
 
 	leftStarts := r.leftAlignedStarts(cells, hc.Hints)
@@ -202,7 +202,7 @@ func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	return changed
 }
 
-func (r OverlapExpansionRule) Deduce(hc HintedCells) []Cell {
+func (r OverlapExpansionRule) Deduce(hc lineView) []Cell {
 	cells := hc.Cells
 
 	firstHint := hc.Hints[0]
@@ -241,7 +241,7 @@ func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	return changed
 }
 
-func (r EdgeExpansionRule) Deduce(hc HintedCells) []Cell {
+func (r EdgeExpansionRule) Deduce(hc lineView) []Cell {
 	cells := hc.Cells
 
 	firstHint := hc.Hints[0]
@@ -310,7 +310,7 @@ func findBlocksN(cells []Cell, n int) []Block {
 	return blocks
 }
 
-func (r BlockSatisfiedRule) Deduce(hc HintedCells) []Cell {
+func (r BlockSatisfiedRule) Deduce(hc lineView) []Cell {
 	cells := hc.Cells
 	hint := r.maxHint(hc.Hints)
 	if hint == 0 {
@@ -357,7 +357,7 @@ func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
 	return hint
 }
 
-func (r PruneImpossibleSegmentRule) Deduce(hc HintedCells) []Cell {
+func (r PruneImpossibleSegmentRule) Deduce(hc lineView) []Cell {
 	hint := r.minHint(hc.Hints)
 	changed := false
 
@@ -383,7 +383,7 @@ func (r FillRemainingWhiteRule) Name() string {
 	return "FillRemainingWhiteRule"
 }
 
-func (r FillRemainingWhiteRule) Deduce(hc HintedCells) []Cell {
+func (r FillRemainingWhiteRule) Deduce(hc lineView) []Cell {
 	sumHints := 0
 	for _, h := range hc.Hints {
 		sumHints += h

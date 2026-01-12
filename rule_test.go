@@ -33,10 +33,10 @@ func TestSplitByWhite(t *testing.T) {
 }
 
 func TestZeroHintRule(t *testing.T) {
-	hc := NewHintedCells([]Cell{U, U, U}, []int{0})
+	line := lineView{[]Cell{U, U, U}, []int{0}}
 	expected := []Cell{W, W, W}
 
-	got := ZeroHintRule{}.Deduce(hc)
+	got := ZeroHintRule{}.Deduce(line)
 
 	if !reflect.DeepEqual(expected, got) {
 		t.Errorf("expected %v, got %v", expected, got)
@@ -59,9 +59,9 @@ func TestMinimumSpacingRule(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := MinimumSpacingRule{}.Deduce(hc)
+			got := MinimumSpacingRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -87,9 +87,9 @@ func TestOverlapFillRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := OverlapFillRule{}.Deduce(hc)
+			got := OverlapFillRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -111,9 +111,9 @@ func TestOverlapExpansionRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := OverlapExpansionRule{}.Deduce(hc)
+			got := OverlapExpansionRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -137,9 +137,9 @@ func TestEdgeExpansionRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := EdgeExpansionRule{}.Deduce(hc)
+			got := EdgeExpansionRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -161,9 +161,9 @@ func TestBlockSatisfiedRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := BlockSatisfiedRule{}.Deduce(hc)
+			got := BlockSatisfiedRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -184,9 +184,9 @@ func TestPruneImpossibleSegmentRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := PruneImpossibleSegmentRule{}.Deduce(hc)
+			got := PruneImpossibleSegmentRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
@@ -207,9 +207,9 @@ func TestFillRemainingWhiteRule(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-			hc := NewHintedCells(tt.cells, tt.hints)
+			line := lineView{tt.cells, tt.hints}
 
-			got := FillRemainingWhiteRule{}.Deduce(hc)
+			got := FillRemainingWhiteRule{}.Deduce(line)
 
 			if !reflect.DeepEqual(tt.expected, got) {
 				t.Errorf("expected %v, got %v", tt.expected, got)
