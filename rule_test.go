@@ -3,6 +3,7 @@ package picrosssolver
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -11,6 +12,22 @@ const (
 	W = CellWhite
 	B = CellBlack
 )
+
+func assertRuleIsPure(t *testing.T, r Rule, line lineView) {
+	t.Helper()
+
+	origCells := slices.Clone(line.Cells)
+	origHints := slices.Clone(line.Hints)
+
+	r.Deduce(line)
+
+	if !slices.Equal(origCells, line.Cells) {
+		t.Fatalf("%s mutated Cells", r.Name())
+	}
+	if !slices.Equal(origHints, line.Hints) {
+		t.Fatalf("%s mutated Hints", r.Name())
+	}
+}
 
 func TestSplitByWhite(t *testing.T) {
 	tests := []struct {
@@ -79,6 +96,7 @@ func TestAllRule(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%s-case%d", tt.rule.Name(), i), func(t *testing.T) {
 			line := lineView{tt.cells, tt.hints}
+			assertRuleIsPure(t, tt.rule, line)
 
 			got := tt.rule.Deduce(line)
 
