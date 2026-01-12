@@ -12,7 +12,7 @@ func NewSolver() Solver {
 	return Solver{newDeducer()}
 }
 
-func (s Solver) ApplyOnce(game *Game) (changed bool) {
+func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
 
 	for i := range game.rowHints {
 		ref := lineRef{lineKindRow, i}
@@ -25,7 +25,7 @@ func (s Solver) ApplyOnce(game *Game) (changed bool) {
 		if lineDeds := s.deducer.DeduceLine(line, ref); len(lineDeds) > 0 {
 			last := lineDeds[len(lineDeds)-1]
 			acc.Update(last.after)
-			changed = true
+			deds = append(deds, lineDeds...)
 		}
 	}
 	for i := range game.colHints {
@@ -39,31 +39,19 @@ func (s Solver) ApplyOnce(game *Game) (changed bool) {
 		if lineDeds := s.deducer.DeduceLine(line, ref); len(lineDeds) > 0 {
 			last := lineDeds[len(lineDeds)-1]
 			acc.Update(last.after)
-			changed = true
+			deds = append(deds, lineDeds...)
 		}
 	}
-	return changed
+	return deds
 }
 
-func (s Solver) checkComplete(board Board) bool {
-	for row := range board {
-		if slices.Index(board[row], CellUndetermined) != -1 {
-			return false
-		}
-	}
-	return true
-}
-
-func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
+func (s Solver) ApplyMany(game *Game) (int, []deduction) {
 	var deds []deduction
-	board := game.board
-	n := 0
-	for !s.checkComplete(board) {
-		n++
-		changed := s.ApplyOnce(game)
-		if !changed {
-			return board, n, deds
+	for n := 0; ; n++ {
+		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {
+			deds = append(deds, OnceDeds...)
+			continue
 		}
+		return n, deds
 	}
-	return board, n, deds
 }

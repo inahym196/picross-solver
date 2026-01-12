@@ -80,3 +80,7 @@ func NewGame(rowHints, colHints [][]int) (*Game, error) {
 	b := newBoard(height, width)
 	return &Game{b, rowHints, colHints}, nil
 }
+
+func (g Game) PrintBoard() []string {
+	return g.board.Print()
+}
