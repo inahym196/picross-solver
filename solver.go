@@ -45,20 +45,11 @@ func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
 	return deds
 }
 
-func (s Solver) checkComplete(board Board) bool {
-	for row := range board {
-		if slices.Index(board[row], CellUndetermined) != -1 {
-			return false
-		}
-	}
-	return true
-}
-
 func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
 	var deds []deduction
 	board := game.board
 	n := 0
-	for !s.checkComplete(board) {
+	for {
 		n++
 		OnceDeds := s.ApplyOnce(game)
 		if len(OnceDeds) == 0 {
@@ -66,5 +57,4 @@ func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
 		}
 		deds = append(deds, OnceDeds...)
 	}
-	return board, n, deds
 }
