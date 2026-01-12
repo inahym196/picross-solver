@@ -133,3 +133,16 @@ func TestE2E(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkE2E(b *testing.B) {
+
+	rowHints := ParseHints("2-3-1-2-3 1-2-4-1 1-2-5 3-2-2-1 1-1-2-1-1 4-1-1-2 5-1-1-3 5-1-1-3 2-1-1-1-1-1 1-1-1-1-1-1 2-1-3 1-8-1 0 1-1-1-1-1-1 2-2")
+	colHints := ParseHints("1-8-2 1-1-4-1-1 1-3-1 2-4-3-1 1-1-3-1 4-1 1-2-3-1 1-5-1 2-1 3-6-1 6-2 3-3-1 1-1-2 2-4-1-1 1-1-5-2")
+	solver := picrosssolver.NewSolver()
+	game, _ := picrosssolver.NewGame(rowHints, colHints)
+
+	for b.Loop() {
+		solver.ApplyMany(game)
+	}
+
+}
