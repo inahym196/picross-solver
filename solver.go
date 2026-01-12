@@ -37,7 +37,7 @@ func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, deductio
 	return changed, deductions
 }
 
-func (s Solver) ApplyOnce(game Game) (board Board, changed bool, deductions []deduction) {
+func (s Solver) ApplyOnce(game *Game) (board Board, changed bool, deductions []deduction) {
 
 	board = slices.Clone(game.board)
 	for i := range game.rowHints {
@@ -68,7 +68,7 @@ func (s Solver) checkComplete(board Board) bool {
 	return true
 }
 
-func (s Solver) ApplyMany(game Game) (Board, int, []deduction) {
+func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
 	var deds []deduction
 	board := DeepCopyBoard(game.board)
 	n := 0

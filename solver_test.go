@@ -118,7 +118,7 @@ func TestE2E(t *testing.T) {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 			game, _ := picrosssolver.NewGame(tt.rowHints, tt.colHints)
 
-			solve, n, deds := solver.ApplyMany(*game)
+			solve, n, deds := solver.ApplyMany(game)
 			t.Logf("applied x%d\n", n)
 
 			if !reflect.DeepEqual(solve.Print(), tt.expected) {
