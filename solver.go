@@ -19,26 +19,16 @@ func (log applyLog) String() string {
 }
 
 type Solver struct {
-	rules []Rule
+	deducer deducer
 }
 
 func NewSolver() Solver {
-	rules := []Rule{
-		ZeroHintRule{},
-		MinimumSpacingRule{},
-		OverlapFillRule{},
-		OverlapExpansionRule{},
-		EdgeExpansionRule{},
-		BlockSatisfiedRule{},
-		PruneImpossibleSegmentRule{},
-		FillRemainingWhiteRule{},
-	}
-	return Solver{rules}
+	return Solver{newDeducer()}
 }
 
 func (s Solver) ApplyLine(acc lineAccessor, hints []int) (changed bool, logs []applyLog) {
 	// TODO: lineごとにrulesを適用し、最後にApplyすればApply頻度を下げられる
-	for _, rule := range s.rules {
+	for _, rule := range s.deducer.rules {
 		before := acc.Cells()
 		if slices.Index(before, CellUndetermined) == -1 {
 			return changed, logs
