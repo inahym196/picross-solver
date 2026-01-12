@@ -45,16 +45,13 @@ func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
 	return deds
 }
 
-func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
+func (s Solver) ApplyMany(game *Game) (int, []deduction) {
 	var deds []deduction
-	board := game.board
-	n := 0
-	for {
-		n++
+	for n := 0; ; n++ {
 		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {
 			deds = append(deds, OnceDeds...)
 			continue
 		}
-		return board, n, deds
+		return n, deds
 	}
 }
