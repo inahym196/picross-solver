@@ -51,10 +51,10 @@ func (s Solver) ApplyMany(game *Game) (Board, int, []deduction) {
 	n := 0
 	for {
 		n++
-		OnceDeds := s.ApplyOnce(game)
-		if len(OnceDeds) == 0 {
-			return board, n, deds
+		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {
+			deds = append(deds, OnceDeds...)
+			continue
 		}
-		deds = append(deds, OnceDeds...)
+		return board, n, deds
 	}
 }
