@@ -88,7 +88,7 @@ func (r OverlapFillRule) Name() string {
 	return "OverlapFillRule"
 }
 
-func nextPlacablePos(cells []Cell, start int) int {
+func (r OverlapFillRule) nextPlacablePos(cells []Cell, start int) int {
 	for i := start; i < len(cells); i++ {
 		if cells[i] != CellWhite {
 			return i
@@ -102,12 +102,12 @@ func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
 	pos := 0
 
 	for i, h := range hints {
-		pos = nextPlacablePos(cells, pos)
+		pos = r.nextPlacablePos(cells, pos)
 		if pos+h > len(cells) {
 			return nil
 		}
 		for slices.Contains(cells[pos:pos+h], CellWhite) {
-			pos = nextPlacablePos(cells, pos+1)
+			pos = r.nextPlacablePos(cells, pos+1)
 			if pos+h > len(cells) {
 				return nil
 			}
@@ -198,6 +198,7 @@ func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
 	}
 
 	for i := firstBlackIndex + 1; i < hint; i++ {
+		// TODO: バグの可能性あり
 		seg[i] = CellBlack
 		changed = true
 	}
@@ -414,6 +415,186 @@ func (r FillRemainingWhiteRule) Deduce(line lineView) []Cell {
 		}
 	}
 
+	if !changed {
+		return nil
+	}
+	return cells
+}
+
+type hogehogeRule struct{}
+
+func (r hogehogeRule) Name() string {
+	return "hogehogeRule"
+}
+
+// 左端から広義単調増加列を取得
+func weaklyIncreasingFromLeft(a []int) []int {
+	if len(a) == 0 {
+		return nil
+	}
+
+	res := []int{a[0]}
+	for i := 1; i < len(a); i++ {
+		if a[i] < a[i-1] {
+			break
+		}
+		res = append(res, a[i])
+	}
+	return res
+}
+
+// 右端から広義単調増加列を取得
+func weaklyIncreasingFromRight(a []int) []int {
+	if len(a) == 0 {
+		return nil
+	}
+
+	tmp := []int{a[len(a)-1]}
+	for i := len(a) - 2; i >= 0; i-- {
+		if a[i] < a[i+1] {
+			break
+		}
+		tmp = append(tmp, a[i])
+	}
+
+	slices.Reverse(tmp)
+	return tmp
+}
+
+func (r hogehogeRule) nextPlacablePos(cells []Cell, start int) int {
+	for i := start; i < len(cells); i++ {
+		if cells[i] != CellWhite {
+			return i
+		}
+	}
+	return len(cells)
+}
+
+func (r hogehogeRule) leftAlignedEnds(cells []Cell, hints []int) []int {
+	ends := make([]int, len(hints))
+	pos := 0
+
+	for i, h := range hints {
+		pos = r.nextPlacablePos(cells, pos)
+		if pos+h > len(cells) {
+			return nil
+		}
+		for slices.Contains(cells[pos:pos+h], CellWhite) {
+			pos = r.nextPlacablePos(cells, pos+1)
+			if pos+h > len(cells) {
+				return nil
+			}
+		}
+		ends[i] = pos + h - 1
+		pos += h + 1
+	}
+	return ends
+}
+
+func (r hogehogeRule) prevPlacablePos(cells []Cell, start int) int {
+	for i := start; i >= 0; i-- {
+		if cells[i] != CellWhite {
+			return i
+		}
+	}
+	return -1
+}
+
+func (r hogehogeRule) rightAlignedStarts(cells []Cell, hints []int) []int {
+	starts := make([]int, len(hints))
+	pos := len(cells) - 1
+	for i := len(hints) - 1; i >= 0; i-- {
+		h := hints[i]
+
+		pos = r.prevPlacablePos(cells, pos)
+		start := pos - h + 1
+		if start < 0 {
+			return nil
+		}
+
+		for slices.Contains(cells[start:pos+1], CellWhite) {
+			pos = r.prevPlacablePos(cells, pos-1)
+			start = pos - h + 1
+			if start < 0 {
+				return nil
+			}
+		}
+		starts[i] = start
+		pos = start - 2
+	}
+	return starts
+}
+
+func (r hogehogeRule) getBlockAt(cells []Cell, index int) (Block, bool) {
+	if index < 0 || index >= len(cells) {
+		return Block{}, false
+	}
+	if cells[index] != CellBlack {
+		return Block{}, false
+	}
+	start := index
+	for start > 0 && cells[start-1] == CellBlack {
+		start--
+	}
+
+	end := index
+	for end+1 < len(cells) && cells[end+1] == CellBlack {
+		end++
+	}
+	return Block{start, end - start + 1}, true
+}
+
+func (r hogehogeRule) tryDrawWhite(cells []Cell, index int) bool {
+	if 0 <= index && index < len(cells) {
+		cells[index] = CellWhite
+		return true
+	}
+	return false
+}
+
+func (r hogehogeRule) Deduce(line lineView) []Cell {
+	cells := slices.Clone(line.Cells)
+	changed := false
+
+	if hints := weaklyIncreasingFromLeft(line.Hints); len(hints) > 0 {
+		for i, end := range r.leftAlignedEnds(cells, hints) {
+			block, found := r.getBlockAt(cells, end)
+			if !found {
+				block, found = r.getBlockAt(cells, end+1)
+				if !found {
+					continue
+				}
+			}
+			if hints[i] == block.length {
+				if r.tryDrawWhite(cells, block.start-1) {
+					changed = true
+				}
+				if r.tryDrawWhite(cells, block.start+block.length) {
+					changed = true
+				}
+			}
+		}
+	}
+
+	if hints := weaklyIncreasingFromRight(line.Hints); len(hints) > 0 {
+		for i, start := range r.rightAlignedStarts(line.Cells, hints) {
+			block, found := r.getBlockAt(cells, start)
+			if !found {
+				block, found = r.getBlockAt(cells, start-1)
+				if !found {
+					continue
+				}
+			}
+			if hints[i] == block.length {
+				if r.tryDrawWhite(cells, block.start-1) {
+					changed = true
+				}
+				if r.tryDrawWhite(cells, block.start+block.length) {
+					changed = true
+				}
+			}
+		}
+	}
 	if !changed {
 		return nil
 	}

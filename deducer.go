@@ -30,6 +30,7 @@ func newDeducer() deducer {
 			OverlapExpansionRule{},
 			EdgeExpansionRule{},
 			BlockSatisfiedRule{},
+			hogehogeRule{},
 			PruneImpossibleSegmentRule{},
 			FillRemainingWhiteRule{},
 		},
