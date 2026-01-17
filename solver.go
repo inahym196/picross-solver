@@ -14,12 +14,11 @@ func NewSolver() Solver {
 	return Solver{newDeducer()}
 }
 
-func (s Solver) ApplyOnce(game *game.Game) (deds []deduction) {
-	board := game.Board()
+func (s Solver) ApplyOnce(game game.Game) (deds []deduction) {
 
 	for i := range game.RowHints {
 		ref := lineRef{lineKindRow, i}
-		acc := lineAccessor{&board, ref}
+		acc := lineAccessor{game, ref}
 		line := lineView{
 			Cells: acc.Cells(),
 			Hints: slices.Clone(game.RowHints[i]),
@@ -33,7 +32,7 @@ func (s Solver) ApplyOnce(game *game.Game) (deds []deduction) {
 	}
 	for i := range game.ColHints {
 		ref := lineRef{lineKindColumn, i}
-		acc := lineAccessor{&board, ref}
+		acc := lineAccessor{game, ref}
 		line := lineView{
 			Cells: acc.Cells(),
 			Hints: slices.Clone(game.ColHints[i]),
@@ -48,7 +47,7 @@ func (s Solver) ApplyOnce(game *game.Game) (deds []deduction) {
 	return deds
 }
 
-func (s Solver) ApplyMany(game *game.Game) (int, []deduction) {
+func (s Solver) ApplyMany(game game.Game) (int, []deduction) {
 	var deds []deduction
 	for n := 0; ; n++ {
 		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {

@@ -44,18 +44,21 @@ func (line lineView) IsFilled() bool {
 }
 
 type lineAccessor struct {
-	board *game.Board
-	ref   lineRef
+	game game.Game
+	ref  lineRef
 }
 
 func (acc lineAccessor) Cells() []game.Cell {
+	board := acc.game.Board()
+	index := acc.ref.index
+
 	switch acc.ref.kind {
 	case lineKindRow:
-		return slices.Clone((*acc.board)[acc.ref.index])
+		return board[index]
 	case lineKindColumn:
-		cells := make([]game.Cell, acc.board.GetRows())
-		for i := range *acc.board {
-			cells[i] = (*acc.board)[i][acc.ref.index]
+		cells := make([]game.Cell, board.GetRows())
+		for i := range board {
+			cells[i] = board[i][index]
 		}
 		return cells
 	default:
@@ -66,10 +69,14 @@ func (acc lineAccessor) Cells() []game.Cell {
 func (acc lineAccessor) Update(cells []game.Cell) {
 	switch acc.ref.kind {
 	case lineKindRow:
-		copy((*acc.board)[acc.ref.index], cells)
-	case lineKindColumn:
+		row := acc.ref.index
 		for i := range cells {
-			(*acc.board)[i][acc.ref.index] = cells[i]
+			acc.game.SetCell(row, i, cells[i])
+		}
+	case lineKindColumn:
+		col := acc.ref.index
+		for i := range cells {
+			acc.game.SetCell(i, col, cells[i])
 		}
 	default:
 		panic("invalid linekind accessor")
