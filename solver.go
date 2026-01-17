@@ -2,6 +2,8 @@ package picrosssolver
 
 import (
 	"slices"
+
+	"github.com/inahym196/picross-solver/pkg/game"
 )
 
 type Solver struct {
@@ -12,14 +14,15 @@ func NewSolver() Solver {
 	return Solver{newDeducer()}
 }
 
-func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
+func (s Solver) ApplyOnce(game *game.Game) (deds []deduction) {
+	board := game.Board()
 
-	for i := range game.rowHints {
+	for i := range game.RowHints {
 		ref := lineRef{lineKindRow, i}
-		acc := lineAccessor{&game.board, ref}
+		acc := lineAccessor{&board, ref}
 		line := lineView{
 			Cells: acc.Cells(),
-			Hints: slices.Clone(game.rowHints[i]),
+			Hints: slices.Clone(game.RowHints[i]),
 		}
 
 		if lineDeds := s.deducer.DeduceLine(line, ref); len(lineDeds) > 0 {
@@ -28,12 +31,12 @@ func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
 			deds = append(deds, lineDeds...)
 		}
 	}
-	for i := range game.colHints {
+	for i := range game.ColHints {
 		ref := lineRef{lineKindColumn, i}
-		acc := lineAccessor{&game.board, ref}
+		acc := lineAccessor{&board, ref}
 		line := lineView{
 			Cells: acc.Cells(),
-			Hints: slices.Clone(game.colHints[i]),
+			Hints: slices.Clone(game.ColHints[i]),
 		}
 
 		if lineDeds := s.deducer.DeduceLine(line, ref); len(lineDeds) > 0 {
@@ -45,7 +48,7 @@ func (s Solver) ApplyOnce(game *Game) (deds []deduction) {
 	return deds
 }
 
-func (s Solver) ApplyMany(game *Game) (int, []deduction) {
+func (s Solver) ApplyMany(game *game.Game) (int, []deduction) {
 	var deds []deduction
 	for n := 0; ; n++ {
 		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {

@@ -5,12 +5,14 @@ import (
 	"reflect"
 	"slices"
 	"testing"
+
+	"github.com/inahym196/picross-solver/pkg/game"
 )
 
 const (
-	U = CellUndetermined
-	W = CellWhite
-	B = CellBlack
+	U = game.CellUndetermined
+	W = game.CellWhite
+	B = game.CellBlack
 )
 
 func assertRuleIsPure(t *testing.T, r Rule, line lineView) {
@@ -31,11 +33,11 @@ func assertRuleIsPure(t *testing.T, r Rule, line lineView) {
 
 func TestSplitByWhite(t *testing.T) {
 	tests := []struct {
-		cells    []Cell
-		expected [][]Cell
+		cells    []game.Cell
+		expected [][]game.Cell
 	}{
-		{[]Cell{U, W, U}, [][]Cell{{U}, {U}}},
-		{[]Cell{W, B, U, U, W}, [][]Cell{{B, U, U}}},
+		{[]game.Cell{U, W, U}, [][]game.Cell{{U}, {U}}},
+		{[]game.Cell{W, B, U, U, W}, [][]game.Cell{{B, U, U}}},
 	}
 
 	for i, tt := range tests {
@@ -52,48 +54,48 @@ func TestSplitByWhite(t *testing.T) {
 func TestAllRule(t *testing.T) {
 	tests := []struct {
 		rule     Rule
-		cells    []Cell
+		cells    []game.Cell
 		hints    []int
-		expected []Cell
+		expected []game.Cell
 	}{
-		{ZeroHintRule{}, []Cell{U, U, U}, []int{0}, []Cell{W, W, W}},
-		{MinimumSpacingRule{}, []Cell{U, U, U}, []int{1, 1}, []Cell{B, W, B}},
-		{MinimumSpacingRule{}, []Cell{U, U, U}, []int{3}, []Cell{B, B, B}},
-		{MinimumSpacingRule{}, []Cell{U, U, U, U}, []int{2, 1}, []Cell{B, B, W, B}},
-		{MinimumSpacingRule{}, []Cell{W, U, U, U, U}, []int{1, 2}, []Cell{W, B, W, B, B}},
-		{MinimumSpacingRule{}, []Cell{U, U, U, U, U}, []int{1, 1, 1}, []Cell{B, W, B, W, B}},
-		{MinimumSpacingRule{}, []Cell{U, U, U, U, U, U}, []int{1, 2, 1}, []Cell{B, W, B, B, W, B}},
-		{OverlapFillRule{}, []Cell{U, U, U}, []int{2}, []Cell{U, B, U}},
-		{OverlapFillRule{}, []Cell{U, U, U, U}, []int{3}, []Cell{U, B, B, U}},
-		{OverlapFillRule{}, []Cell{U, U, U, U, U}, []int{2, 1}, []Cell{U, B, U, U, U}},
-		{OverlapFillRule{}, []Cell{W, U, W, U, U}, []int{1, 2}, []Cell{W, B, W, B, B}},
-		{OverlapFillRule{}, []Cell{W, U, W, U, U, U}, []int{1, 2}, []Cell{W, B, W, U, B, U}},
-		{OverlapFillRule{}, []Cell{U, U, U, U, U, U}, []int{2, 2}, []Cell{U, B, U, U, B, U}},
-		{OverlapFillRule{}, []Cell{U, U, U, W, U, U}, []int{1, 2}, []Cell{U, U, U, W, B, B}},
-		{OverlapFillRule{}, []Cell{B, B, W, U, U, U, B, B, W, U, U, U, W, U, U}, []int{2, 4, 1, 1}, []Cell{B, B, W, U, B, B, B, B, W, U, U, U, W, U, U}},
-		{OverlapExpansionRule{}, []Cell{U, U, U, U, U}, []int{1, 1}, nil},
-		{OverlapExpansionRule{}, []Cell{U, B, U, U, U, U}, []int{3}, []Cell{U, B, B, U, U, U}},
-		{OverlapExpansionRule{}, []Cell{U, U, U, U, B, U}, []int{3}, []Cell{U, U, U, B, B, U}},
-		{OverlapExpansionRule{}, []Cell{W, U, B, U, U, U, U}, []int{3}, []Cell{W, U, B, B, U, U, U}},
-		{EdgeExpansionRule{}, []Cell{B, U, U}, []int{2}, []Cell{B, B, W}},
-		{EdgeExpansionRule{}, []Cell{U, U, B}, []int{2}, []Cell{W, B, B}},
-		{EdgeExpansionRule{}, []Cell{W, B, U, U}, []int{2}, []Cell{W, B, B, W}},
-		{EdgeExpansionRule{}, []Cell{U, U, B, W}, []int{2}, []Cell{W, B, B, W}},
-		{EdgeExpansionRule{}, []Cell{W, W, B, U, U, U}, []int{3}, []Cell{W, W, B, B, B, W}},
-		{EdgeExpansionRule{}, []Cell{U, U, U, B, W, W}, []int{3}, []Cell{W, B, B, B, W, W}},
-		{BlockSatisfiedRule{}, []Cell{U}, []int{1, 1}, nil},
-		{BlockSatisfiedRule{}, []Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
-		{BlockSatisfiedRule{}, []Cell{U, U, B, B, U, U}, []int{2}, []Cell{U, W, B, B, W, U}},
-		{BlockSatisfiedRule{}, []Cell{B, U, U, B, B, U}, []int{1, 2}, []Cell{B, U, W, B, B, W}},
-		{hogehogeRule{}, []Cell{U, U, U, B, U}, []int{1, 2}, nil},
-		{hogehogeRule{}, []Cell{B, U, U, B, U}, []int{1, 1}, []Cell{B, W, W, B, W}},
-		{hogehogeRule{}, []Cell{U, U, U, U, B, B}, []int{1, 2}, []Cell{U, U, U, W, B, B}},
-		{PruneImpossibleSegmentRule{}, []Cell{U, W, U}, []int{1}, nil},
-		{PruneImpossibleSegmentRule{}, []Cell{U, W, U, U}, []int{2}, []Cell{W, W, U, U}},
-		{PruneImpossibleSegmentRule{}, []Cell{U, W, U, W, U, U}, []int{2, 3, 4, 5}, []Cell{W, W, W, W, U, U}},
-		{FillRemainingWhiteRule{}, []Cell{U, B, U}, []int{1}, []Cell{W, B, W}},
-		{FillRemainingWhiteRule{}, []Cell{B, U, B, B}, []int{1, 2}, []Cell{B, W, B, B}},
-		{FillRemainingWhiteRule{}, []Cell{U, B, B, W, U, B}, []int{2, 1}, []Cell{W, B, B, W, W, B}},
+		{ZeroHintRule{}, []game.Cell{U, U, U}, []int{0}, []game.Cell{W, W, W}},
+		{MinimumSpacingRule{}, []game.Cell{U, U, U}, []int{1, 1}, []game.Cell{B, W, B}},
+		{MinimumSpacingRule{}, []game.Cell{U, U, U}, []int{3}, []game.Cell{B, B, B}},
+		{MinimumSpacingRule{}, []game.Cell{U, U, U, U}, []int{2, 1}, []game.Cell{B, B, W, B}},
+		{MinimumSpacingRule{}, []game.Cell{W, U, U, U, U}, []int{1, 2}, []game.Cell{W, B, W, B, B}},
+		{MinimumSpacingRule{}, []game.Cell{U, U, U, U, U}, []int{1, 1, 1}, []game.Cell{B, W, B, W, B}},
+		{MinimumSpacingRule{}, []game.Cell{U, U, U, U, U, U}, []int{1, 2, 1}, []game.Cell{B, W, B, B, W, B}},
+		{OverlapFillRule{}, []game.Cell{U, U, U}, []int{2}, []game.Cell{U, B, U}},
+		{OverlapFillRule{}, []game.Cell{U, U, U, U}, []int{3}, []game.Cell{U, B, B, U}},
+		{OverlapFillRule{}, []game.Cell{U, U, U, U, U}, []int{2, 1}, []game.Cell{U, B, U, U, U}},
+		{OverlapFillRule{}, []game.Cell{W, U, W, U, U}, []int{1, 2}, []game.Cell{W, B, W, B, B}},
+		{OverlapFillRule{}, []game.Cell{W, U, W, U, U, U}, []int{1, 2}, []game.Cell{W, B, W, U, B, U}},
+		{OverlapFillRule{}, []game.Cell{U, U, U, U, U, U}, []int{2, 2}, []game.Cell{U, B, U, U, B, U}},
+		{OverlapFillRule{}, []game.Cell{U, U, U, W, U, U}, []int{1, 2}, []game.Cell{U, U, U, W, B, B}},
+		{OverlapFillRule{}, []game.Cell{B, B, W, U, U, U, B, B, W, U, U, U, W, U, U}, []int{2, 4, 1, 1}, []game.Cell{B, B, W, U, B, B, B, B, W, U, U, U, W, U, U}},
+		{OverlapExpansionRule{}, []game.Cell{U, U, U, U, U}, []int{1, 1}, nil},
+		{OverlapExpansionRule{}, []game.Cell{U, B, U, U, U, U}, []int{3}, []game.Cell{U, B, B, U, U, U}},
+		{OverlapExpansionRule{}, []game.Cell{U, U, U, U, B, U}, []int{3}, []game.Cell{U, U, U, B, B, U}},
+		{OverlapExpansionRule{}, []game.Cell{W, U, B, U, U, U, U}, []int{3}, []game.Cell{W, U, B, B, U, U, U}},
+		{EdgeExpansionRule{}, []game.Cell{B, U, U}, []int{2}, []game.Cell{B, B, W}},
+		{EdgeExpansionRule{}, []game.Cell{U, U, B}, []int{2}, []game.Cell{W, B, B}},
+		{EdgeExpansionRule{}, []game.Cell{W, B, U, U}, []int{2}, []game.Cell{W, B, B, W}},
+		{EdgeExpansionRule{}, []game.Cell{U, U, B, W}, []int{2}, []game.Cell{W, B, B, W}},
+		{EdgeExpansionRule{}, []game.Cell{W, W, B, U, U, U}, []int{3}, []game.Cell{W, W, B, B, B, W}},
+		{EdgeExpansionRule{}, []game.Cell{U, U, U, B, W, W}, []int{3}, []game.Cell{W, B, B, B, W, W}},
+		{BlockSatisfiedRule{}, []game.Cell{U}, []int{1, 1}, nil},
+		{BlockSatisfiedRule{}, []game.Cell{U, B, U}, []int{1}, []game.Cell{W, B, W}},
+		{BlockSatisfiedRule{}, []game.Cell{U, U, B, B, U, U}, []int{2}, []game.Cell{U, W, B, B, W, U}},
+		{BlockSatisfiedRule{}, []game.Cell{B, U, U, B, B, U}, []int{1, 2}, []game.Cell{B, U, W, B, B, W}},
+		{hogehogeRule{}, []game.Cell{U, U, U, B, U}, []int{1, 2}, nil},
+		{hogehogeRule{}, []game.Cell{B, U, U, B, U}, []int{1, 1}, []game.Cell{B, W, W, B, W}},
+		{hogehogeRule{}, []game.Cell{U, U, U, U, B, B}, []int{1, 2}, []game.Cell{U, U, U, W, B, B}},
+		{PruneImpossibleSegmentRule{}, []game.Cell{U, W, U}, []int{1}, nil},
+		{PruneImpossibleSegmentRule{}, []game.Cell{U, W, U, U}, []int{2}, []game.Cell{W, W, U, U}},
+		{PruneImpossibleSegmentRule{}, []game.Cell{U, W, U, W, U, U}, []int{2, 3, 4, 5}, []game.Cell{W, W, W, W, U, U}},
+		{FillRemainingWhiteRule{}, []game.Cell{U, B, U}, []int{1}, []game.Cell{W, B, W}},
+		{FillRemainingWhiteRule{}, []game.Cell{B, U, B, B}, []int{1, 2}, []game.Cell{B, W, B, B}},
+		{FillRemainingWhiteRule{}, []game.Cell{U, B, B, W, U, B}, []int{2, 1}, []game.Cell{W, B, B, W, W, B}},
 	}
 
 	for i, tt := range tests {

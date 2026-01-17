@@ -2,18 +2,15 @@ package picrosssolver
 
 import (
 	"slices"
+
+	"github.com/inahym196/picross-solver/pkg/game"
 )
 
-type Rule interface {
-	Name() string
-	Deduce(lineView) []Cell
-}
-
-func splitByWhite(cells []Cell) [][]Cell {
-	var segs [][]Cell
+func splitByWhite(cells []game.Cell) [][]game.Cell {
+	var segs [][]game.Cell
 	var start int
 	for i, c := range cells {
-		if c == CellWhite {
+		if c == game.CellWhite {
 			if start < i {
 				segs = append(segs, cells[start:i])
 			}
@@ -32,13 +29,13 @@ func (e ZeroHintRule) Name() string {
 	return "ZeroHintRule"
 }
 
-func (r ZeroHintRule) Deduce(line lineView) []Cell {
+func (r ZeroHintRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	if len(line.Hints) != 1 || line.Hints[0] != 0 {
 		return nil
 	}
 	for i := range cells {
-		cells[i] = CellWhite
+		cells[i] = game.CellWhite
 	}
 	return cells
 }
@@ -50,7 +47,7 @@ func (r MinimumSpacingRule) Name() string {
 	return "MinimumSpacingRule"
 }
 
-func (r MinimumSpacingRule) Deduce(line lineView) []Cell {
+func (r MinimumSpacingRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	segs := splitByWhite(cells)
@@ -70,11 +67,11 @@ func (r MinimumSpacingRule) Deduce(line lineView) []Cell {
 	var last int
 	for i, hint := range line.Hints {
 		for range hint {
-			seg[last] = CellBlack
+			seg[last] = game.CellBlack
 			last++
 		}
 		if i != len(line.Hints)-1 {
-			seg[last] = CellWhite
+			seg[last] = game.CellWhite
 			last++
 		}
 	}
@@ -88,16 +85,16 @@ func (r OverlapFillRule) Name() string {
 	return "OverlapFillRule"
 }
 
-func (r OverlapFillRule) nextPlacablePos(cells []Cell, start int) int {
+func (r OverlapFillRule) nextPlacablePos(cells []game.Cell, start int) int {
 	for i := start; i < len(cells); i++ {
-		if cells[i] != CellWhite {
+		if cells[i] != game.CellWhite {
 			return i
 		}
 	}
 	return len(cells)
 }
 
-func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
+func (r OverlapFillRule) leftAlignedStarts(cells []game.Cell, hints []int) []int {
 	starts := make([]int, len(hints))
 	pos := 0
 
@@ -106,7 +103,7 @@ func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
 		if pos+h > len(cells) {
 			return nil
 		}
-		for slices.Contains(cells[pos:pos+h], CellWhite) {
+		for slices.Contains(cells[pos:pos+h], game.CellWhite) {
 			pos = r.nextPlacablePos(cells, pos+1)
 			if pos+h > len(cells) {
 				return nil
@@ -118,16 +115,16 @@ func (r OverlapFillRule) leftAlignedStarts(cells []Cell, hints []int) []int {
 	return starts
 }
 
-func (r OverlapFillRule) prevPlacablePos(cells []Cell, start int) int {
+func (r OverlapFillRule) prevPlacablePos(cells []game.Cell, start int) int {
 	for i := start; i >= 0; i-- {
-		if cells[i] != CellWhite {
+		if cells[i] != game.CellWhite {
 			return i
 		}
 	}
 	return -1
 }
 
-func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
+func (r OverlapFillRule) rightAlignedStarts(cells []game.Cell, hints []int) []int {
 	starts := make([]int, len(hints))
 	pos := len(cells) - 1
 	for i := len(hints) - 1; i >= 0; i-- {
@@ -139,7 +136,7 @@ func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 			return nil
 		}
 
-		for slices.Contains(cells[start:pos+1], CellWhite) {
+		for slices.Contains(cells[start:pos+1], game.CellWhite) {
 			pos = r.prevPlacablePos(cells, pos-1)
 			start = pos - h + 1
 			if start < 0 {
@@ -152,7 +149,7 @@ func (r OverlapFillRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 	return starts
 }
 
-func (r OverlapFillRule) Deduce(line lineView) []Cell {
+func (r OverlapFillRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	leftStarts := r.leftAlignedStarts(cells, line.Hints)
@@ -171,8 +168,8 @@ func (r OverlapFillRule) Deduce(line lineView) []Cell {
 		overlapEnd := min(left+hint, right+hint)
 
 		for p := overlapStart; p < overlapEnd; p++ {
-			if cells[p] == CellUndetermined {
-				cells[p] = CellBlack
+			if cells[p] == game.CellUndetermined {
+				cells[p] = game.CellBlack
 				changed = true
 			}
 		}
@@ -190,22 +187,22 @@ func (r OverlapExpansionRule) Name() string {
 	return "OverlapExpansionRule"
 }
 
-func (r OverlapExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
+func (r OverlapExpansionRule) applyLeft(cells []game.Cell, hint int) (changed bool) {
 	seg := splitByWhite(cells)[0]
-	firstBlackIndex := slices.Index(seg, CellBlack)
+	firstBlackIndex := slices.Index(seg, game.CellBlack)
 	if firstBlackIndex == -1 || firstBlackIndex >= hint {
 		return false
 	}
 
 	for i := firstBlackIndex + 1; i < hint; i++ {
 		// TODO: バグの可能性あり
-		seg[i] = CellBlack
+		seg[i] = game.CellBlack
 		changed = true
 	}
 	return changed
 }
 
-func (r OverlapExpansionRule) Deduce(line lineView) []Cell {
+func (r OverlapExpansionRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	firstHint := line.Hints[0]
@@ -229,22 +226,22 @@ func (r EdgeExpansionRule) Name() string {
 	return "EdgeExpansionRule"
 }
 
-func (r EdgeExpansionRule) applyLeft(cells []Cell, hint int) (changed bool) {
+func (r EdgeExpansionRule) applyLeft(cells []game.Cell, hint int) (changed bool) {
 	seg := splitByWhite(cells)[0]
-	if seg[0] != CellBlack || len(seg) < hint {
+	if seg[0] != game.CellBlack || len(seg) < hint {
 		return false
 	}
 	for i := range hint {
-		seg[i] = CellBlack
+		seg[i] = game.CellBlack
 		changed = true
 	}
 	if len(seg) > hint {
-		seg[hint] = CellWhite
+		seg[hint] = game.CellWhite
 	}
 	return changed
 }
 
-func (r EdgeExpansionRule) Deduce(line lineView) []Cell {
+func (r EdgeExpansionRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	firstHint := line.Hints[0]
@@ -281,8 +278,8 @@ type Block struct {
 	length int
 }
 
-func nextBlock(cells []Cell, start int) *Block {
-	for cells[start] != CellBlack {
+func nextBlock(cells []game.Cell, start int) *Block {
+	for cells[start] != game.CellBlack {
 		start++
 		if start >= len(cells) {
 			return nil
@@ -290,14 +287,14 @@ func nextBlock(cells []Cell, start int) *Block {
 	}
 	length := 0
 	end := start
-	for end < len(cells) && cells[end] == CellBlack {
+	for end < len(cells) && cells[end] == game.CellBlack {
 		end++
 		length++
 	}
 	return &Block{start, length}
 }
 
-func findBlocksN(cells []Cell, n int) []Block {
+func findBlocksN(cells []game.Cell, n int) []Block {
 	var blocks []Block
 	for i := 0; i < len(cells); i++ {
 		block := nextBlock(cells, i)
@@ -313,7 +310,7 @@ func findBlocksN(cells []Cell, n int) []Block {
 	return blocks
 }
 
-func (r BlockSatisfiedRule) Deduce(line lineView) []Cell {
+func (r BlockSatisfiedRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	hint := r.maxHint(line.Hints)
 	if hint == 0 {
@@ -328,13 +325,13 @@ func (r BlockSatisfiedRule) Deduce(line lineView) []Cell {
 	changed := false
 	for _, block := range blocks {
 		prevStart := block.start - 1
-		if prevStart >= 0 && cells[prevStart] == CellUndetermined {
-			cells[prevStart] = CellWhite
+		if prevStart >= 0 && cells[prevStart] == game.CellUndetermined {
+			cells[prevStart] = game.CellWhite
 			changed = true
 		}
 		afterEnd := block.start + block.length
-		if afterEnd < len(cells) && cells[afterEnd] == CellUndetermined {
-			cells[afterEnd] = CellWhite
+		if afterEnd < len(cells) && cells[afterEnd] == game.CellUndetermined {
+			cells[afterEnd] = game.CellWhite
 			changed = true
 		}
 	}
@@ -360,7 +357,7 @@ func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
 	return hint
 }
 
-func (r PruneImpossibleSegmentRule) Deduce(line lineView) []Cell {
+func (r PruneImpossibleSegmentRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	hint := r.minHint(line.Hints)
@@ -371,7 +368,7 @@ func (r PruneImpossibleSegmentRule) Deduce(line lineView) []Cell {
 		if len(seg) < hint {
 			changed = true
 			for j := range seg {
-				segs[i][j] = CellWhite
+				segs[i][j] = game.CellWhite
 			}
 		}
 	}
@@ -388,7 +385,7 @@ func (r FillRemainingWhiteRule) Name() string {
 	return "FillRemainingWhiteRule"
 }
 
-func (r FillRemainingWhiteRule) Deduce(line lineView) []Cell {
+func (r FillRemainingWhiteRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	sumHints := 0
@@ -398,7 +395,7 @@ func (r FillRemainingWhiteRule) Deduce(line lineView) []Cell {
 
 	blackCount := 0
 	for _, c := range cells {
-		if c == CellBlack {
+		if c == game.CellBlack {
 			blackCount++
 		}
 	}
@@ -409,8 +406,8 @@ func (r FillRemainingWhiteRule) Deduce(line lineView) []Cell {
 
 	changed := false
 	for i, c := range cells {
-		if c == CellUndetermined {
-			cells[i] = CellWhite
+		if c == game.CellUndetermined {
+			cells[i] = game.CellWhite
 			changed = true
 		}
 	}
@@ -461,16 +458,16 @@ func weaklyIncreasingFromRight(a []int) []int {
 	return tmp
 }
 
-func (r hogehogeRule) nextPlacablePos(cells []Cell, start int) int {
+func (r hogehogeRule) nextPlacablePos(cells []game.Cell, start int) int {
 	for i := start; i < len(cells); i++ {
-		if cells[i] != CellWhite {
+		if cells[i] != game.CellWhite {
 			return i
 		}
 	}
 	return len(cells)
 }
 
-func (r hogehogeRule) leftAlignedEnds(cells []Cell, hints []int) []int {
+func (r hogehogeRule) leftAlignedEnds(cells []game.Cell, hints []int) []int {
 	ends := make([]int, len(hints))
 	pos := 0
 
@@ -479,7 +476,7 @@ func (r hogehogeRule) leftAlignedEnds(cells []Cell, hints []int) []int {
 		if pos+h > len(cells) {
 			return nil
 		}
-		for slices.Contains(cells[pos:pos+h], CellWhite) {
+		for slices.Contains(cells[pos:pos+h], game.CellWhite) {
 			pos = r.nextPlacablePos(cells, pos+1)
 			if pos+h > len(cells) {
 				return nil
@@ -491,16 +488,16 @@ func (r hogehogeRule) leftAlignedEnds(cells []Cell, hints []int) []int {
 	return ends
 }
 
-func (r hogehogeRule) prevPlacablePos(cells []Cell, start int) int {
+func (r hogehogeRule) prevPlacablePos(cells []game.Cell, start int) int {
 	for i := start; i >= 0; i-- {
-		if cells[i] != CellWhite {
+		if cells[i] != game.CellWhite {
 			return i
 		}
 	}
 	return -1
 }
 
-func (r hogehogeRule) rightAlignedStarts(cells []Cell, hints []int) []int {
+func (r hogehogeRule) rightAlignedStarts(cells []game.Cell, hints []int) []int {
 	starts := make([]int, len(hints))
 	pos := len(cells) - 1
 	for i := len(hints) - 1; i >= 0; i-- {
@@ -512,7 +509,7 @@ func (r hogehogeRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 			return nil
 		}
 
-		for slices.Contains(cells[start:pos+1], CellWhite) {
+		for slices.Contains(cells[start:pos+1], game.CellWhite) {
 			pos = r.prevPlacablePos(cells, pos-1)
 			start = pos - h + 1
 			if start < 0 {
@@ -525,34 +522,34 @@ func (r hogehogeRule) rightAlignedStarts(cells []Cell, hints []int) []int {
 	return starts
 }
 
-func (r hogehogeRule) getBlockAt(cells []Cell, index int) (Block, bool) {
+func (r hogehogeRule) getBlockAt(cells []game.Cell, index int) (Block, bool) {
 	if index < 0 || index >= len(cells) {
 		return Block{}, false
 	}
-	if cells[index] != CellBlack {
+	if cells[index] != game.CellBlack {
 		return Block{}, false
 	}
 	start := index
-	for start > 0 && cells[start-1] == CellBlack {
+	for start > 0 && cells[start-1] == game.CellBlack {
 		start--
 	}
 
 	end := index
-	for end+1 < len(cells) && cells[end+1] == CellBlack {
+	for end+1 < len(cells) && cells[end+1] == game.CellBlack {
 		end++
 	}
 	return Block{start, end - start + 1}, true
 }
 
-func (r hogehogeRule) tryDrawWhite(cells []Cell, index int) bool {
+func (r hogehogeRule) tryDrawWhite(cells []game.Cell, index int) bool {
 	if 0 <= index && index < len(cells) {
-		cells[index] = CellWhite
+		cells[index] = game.CellWhite
 		return true
 	}
 	return false
 }
 
-func (r hogehogeRule) Deduce(line lineView) []Cell {
+func (r hogehogeRule) Deduce(line lineView) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	changed := false
 

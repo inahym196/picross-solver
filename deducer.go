@@ -3,18 +3,25 @@ package picrosssolver
 import (
 	"fmt"
 	"slices"
+
+	"github.com/inahym196/picross-solver/pkg/game"
 )
 
 type deduction struct {
 	ruleName string
 	hints    []int
 	lineRef  lineRef
-	before   []Cell
-	after    []Cell
+	before   []game.Cell
+	after    []game.Cell
 }
 
 func (deduction deduction) String() string {
 	return fmt.Sprintf("%s %s %v %v -> %v", deduction.ruleName, deduction.lineRef, deduction.hints, deduction.before, deduction.after)
+}
+
+type Rule interface {
+	Name() string
+	Deduce(lineView) []game.Cell
 }
 
 type deducer struct {

@@ -3,6 +3,8 @@ package picrosssolver
 import (
 	"fmt"
 	"slices"
+
+	"github.com/inahym196/picross-solver/pkg/game"
 )
 
 type lineKind uint8
@@ -33,25 +35,25 @@ func (ref lineRef) String() string {
 }
 
 type lineView struct {
-	Cells []Cell
+	Cells []game.Cell
 	Hints []int
 }
 
 func (line lineView) IsFilled() bool {
-	return slices.Index(line.Cells, CellUndetermined) == -1
+	return slices.Index(line.Cells, game.CellUndetermined) == -1
 }
 
 type lineAccessor struct {
-	board *Board
+	board *game.Board
 	ref   lineRef
 }
 
-func (acc lineAccessor) Cells() []Cell {
+func (acc lineAccessor) Cells() []game.Cell {
 	switch acc.ref.kind {
 	case lineKindRow:
 		return slices.Clone((*acc.board)[acc.ref.index])
 	case lineKindColumn:
-		cells := make([]Cell, acc.board.GetRows())
+		cells := make([]game.Cell, acc.board.GetRows())
 		for i := range *acc.board {
 			cells[i] = (*acc.board)[i][acc.ref.index]
 		}
@@ -61,7 +63,7 @@ func (acc lineAccessor) Cells() []Cell {
 	}
 }
 
-func (acc lineAccessor) Update(cells []Cell) {
+func (acc lineAccessor) Update(cells []game.Cell) {
 	switch acc.ref.kind {
 	case lineKindRow:
 		copy((*acc.board)[acc.ref.index], cells)

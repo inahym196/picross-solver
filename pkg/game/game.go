@@ -1,4 +1,4 @@
-package picrosssolver
+package game
 
 import (
 	"errors"
@@ -65,8 +65,8 @@ func (b Board) Print() []string {
 
 type Game struct {
 	board    Board
-	rowHints [][]int
-	colHints [][]int
+	RowHints [][]int
+	ColHints [][]int
 }
 
 func NewGame(rowHints, colHints [][]int) (*Game, error) {
@@ -81,6 +81,6 @@ func NewGame(rowHints, colHints [][]int) (*Game, error) {
 	return &Game{b, rowHints, colHints}, nil
 }
 
-func (g Game) PrintBoard() []string {
-	return g.board.Print()
+func (g Game) Board() Board {
+	return g.board
 }
