@@ -14,34 +14,38 @@ func (r OverlapExpansionRule) Name() string {
 	return "OverlapExpansionRule"
 }
 
-func (r OverlapExpansionRule) applyLeft(cells []game.Cell, hint int) (changed bool) {
-	seg := SplitByWhite(cells)[0]
-	firstBlackIndex := slices.Index(seg, game.CellBlack)
+func (r OverlapExpansionRule) expand(cells []game.Cell, hint int, indexer func(i, n int) int) bool {
+	n := len(cells)
+
+	firstBlackIndex := -1
+	for i := range n {
+		if cells[indexer(i, n)] == game.CellBlack {
+			firstBlackIndex = i
+			break
+		}
+	}
 	if firstBlackIndex == -1 || firstBlackIndex >= hint {
 		return false
 	}
 
 	for i := firstBlackIndex + 1; i < hint; i++ {
-		// TODO: バグの可能性あり
-		seg[i] = game.CellBlack
-		changed = true
+		cells[indexer(i, n)] = game.CellBlack
 	}
-	return changed
+	return true
 }
 
 func (r OverlapExpansionRule) Deduce(line line.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
+	trim := trimWhite(cells)
 
-	firstHint := line.Hints[0]
-	changed1 := r.applyLeft(cells, firstHint)
+	leftIndexer := func(i, _ int) int { return i }
+	expand1 := r.expand(trim, line.Hints[0], leftIndexer)
 
-	slices.Reverse(cells)
-	lastHint := line.Hints[len(line.Hints)-1]
-	changed2 := r.applyLeft(cells, lastHint)
+	rightIndexer := func(i, n int) int { return n - 1 - i }
+	expand2 := r.expand(cells, line.Hints[len(line.Hints)-1], rightIndexer)
 
-	if !changed1 && !changed2 {
+	if !expand1 && !expand2 {
 		return nil
 	}
-	slices.Reverse(cells)
 	return cells
 }
