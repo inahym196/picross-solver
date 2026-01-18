@@ -39,7 +39,7 @@ func NewDeducer() Deducer {
 			rules.OverlapFillRule{},
 			rules.OverlapExpansionRule{},
 			rules.EdgeExpansionRule{},
-			rules.BlockSatisfiedRule{},
+			rules.MaxHintBlockBoundaryRule{},
 			rules.HogeHogeRule{},
 			rules.PruneImpossibleSegmentRule{},
 			rules.FillRemainingWhiteRule{},
