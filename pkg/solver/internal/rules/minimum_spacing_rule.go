@@ -16,29 +16,24 @@ func (r MinimumSpacingRule) Name() string {
 
 func (r MinimumSpacingRule) Deduce(line line.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
+	trim := trimWhite(cells)
 
-	segs := SplitByWhite(cells)
-	if len(segs) != 1 {
-		return nil
-	}
-
-	seg := segs[0]
 	var sum int
 	for _, h := range line.Hints {
 		sum += h
 	}
-	if sum+(len(line.Hints)-1) != len(seg) {
+	if sum+(len(line.Hints)-1) != len(trim) {
 		return nil
 	}
 
-	var last int
+	last := 0
 	for i, hint := range line.Hints {
 		for range hint {
-			seg[last] = game.CellBlack
+			trim[last] = game.CellBlack
 			last++
 		}
 		if i != len(line.Hints)-1 {
-			seg[last] = game.CellWhite
+			trim[last] = game.CellWhite
 			last++
 		}
 	}

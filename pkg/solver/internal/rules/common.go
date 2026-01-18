@@ -21,6 +21,21 @@ func SplitByWhite(cells []game.Cell) [][]game.Cell {
 	return segs
 }
 
+func trimWhite(cells []game.Cell) []game.Cell {
+	start := 0
+	for start < len(cells) && cells[start] == game.CellWhite {
+		start++
+	}
+	end := len(cells) - 1
+	for end > start && cells[end] == game.CellWhite {
+		end--
+	}
+	if start >= end {
+		return nil
+	}
+	return cells[start : end+1]
+}
+
 type Block struct {
 	start  int
 	length int

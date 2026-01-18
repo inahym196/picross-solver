@@ -7,21 +7,6 @@ import (
 	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
-func trimWhite(cells []game.Cell) []game.Cell {
-	start := 0
-	for start < len(cells) && cells[start] == game.CellWhite {
-		start++
-	}
-	end := len(cells) - 1
-	for end > start && cells[end] == game.CellWhite {
-		end--
-	}
-	if start >= end {
-		return nil
-	}
-	return cells[start : end+1]
-}
-
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
 type EdgeExpansionRule struct{}
 
