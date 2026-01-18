@@ -14,18 +14,10 @@ func (r PruneImpossibleSegmentRule) Name() string {
 	return "PruneImpossibleSegmentRule"
 }
 
-func (r PruneImpossibleSegmentRule) minHint(hints []int) int {
-	hint := hints[0]
-	for _, h := range hints {
-		hint = min(hint, h)
-	}
-	return hint
-}
-
 func (r PruneImpossibleSegmentRule) Deduce(line line.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
-	hint := r.minHint(line.Hints)
+	hint := slices.Min(line.Hints)
 	changed := false
 
 	segs := SplitByWhite(cells)
