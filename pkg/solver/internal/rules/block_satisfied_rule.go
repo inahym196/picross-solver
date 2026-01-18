@@ -14,17 +14,9 @@ func (r BlockSatisfiedRule) Name() string {
 	return "BlockSatisfiedRule"
 }
 
-func (r BlockSatisfiedRule) maxHint(hints []int) int {
-	hint := -1
-	for _, h := range hints {
-		hint = max(hint, h)
-	}
-	return hint
-}
-
 func (r BlockSatisfiedRule) Deduce(line line.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
-	hint := r.maxHint(line.Hints)
+	hint := slices.Max(line.Hints)
 	if hint == 0 {
 		return nil
 	}
