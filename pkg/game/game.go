@@ -1,7 +1,8 @@
-package picrosssolver
+package game
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -36,6 +37,14 @@ func newBoard(height, width int) Board {
 	return board
 }
 
+func (b Board) InBounds(row, col int) bool {
+	return 0 <= row && row < len(b) && 0 <= col && col <= len(b[0])
+}
+
+func (b Board) SetCell(row, col int, cell Cell) {
+	b[row][col] = cell
+}
+
 func (b Board) GetRows() int {
 	return len(b)
 }
@@ -65,22 +74,30 @@ func (b Board) Print() []string {
 
 type Game struct {
 	board    Board
-	rowHints [][]int
-	colHints [][]int
+	RowHints [][]int
+	ColHints [][]int
 }
 
-func NewGame(rowHints, colHints [][]int) (*Game, error) {
+func NewGame(rowHints, colHints [][]int) (Game, error) {
 	if len(rowHints) == 0 || len(colHints) == 0 {
-		return nil, errors.New("rowHints,colHintsは1より大きい必要がある")
+		return Game{}, errors.New("rowHints,colHintsは1より大きい必要がある")
 	}
 	// TODO: hintsの最小配置がlen(cell)より小さい必要がある
 	width := len(colHints)
 	height := len(rowHints)
 
 	b := newBoard(height, width)
-	return &Game{b, rowHints, colHints}, nil
+	return Game{b, rowHints, colHints}, nil
 }
 
-func (g Game) PrintBoard() []string {
-	return g.board.Print()
+func (g Game) Board() Board {
+	return g.board
+}
+
+func (g Game) SetCell(row, col int, cell Cell) error {
+	if !g.board.InBounds(row, col) {
+		return fmt.Errorf("out of range")
+	}
+	g.board.SetCell(row, col, cell)
+	return nil
 }
