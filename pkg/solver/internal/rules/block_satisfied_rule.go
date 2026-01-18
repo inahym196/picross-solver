@@ -1,0 +1,55 @@
+package rules
+
+import (
+	"slices"
+
+	"github.com/inahym196/picross-solver/pkg/game"
+	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
+)
+
+// 既に黒が hint 長に達しているブロックの前後を白確定
+type BlockSatisfiedRule struct{}
+
+func (r BlockSatisfiedRule) Name() string {
+	return "BlockSatisfiedRule"
+}
+
+func (r BlockSatisfiedRule) maxHint(hints []int) int {
+	hint := -1
+	for _, h := range hints {
+		hint = max(hint, h)
+	}
+	return hint
+}
+
+func (r BlockSatisfiedRule) Deduce(line line.Line) []game.Cell {
+	cells := slices.Clone(line.Cells)
+	hint := r.maxHint(line.Hints)
+	if hint == 0 {
+		return nil
+	}
+
+	blocks := findBlocksN(cells, hint)
+	if len(blocks) == 0 {
+		return nil
+	}
+
+	changed := false
+	for _, block := range blocks {
+		prevStart := block.start - 1
+		if prevStart >= 0 && cells[prevStart] == game.CellUndetermined {
+			cells[prevStart] = game.CellWhite
+			changed = true
+		}
+		afterEnd := block.start + block.length
+		if afterEnd < len(cells) && cells[afterEnd] == game.CellUndetermined {
+			cells[afterEnd] = game.CellWhite
+			changed = true
+		}
+	}
+
+	if !changed {
+		return nil
+	}
+	return cells
+}

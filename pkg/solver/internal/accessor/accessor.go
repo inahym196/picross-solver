@@ -1,8 +1,7 @@
-package picrosssolver
+package accessor
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
 )
@@ -10,52 +9,48 @@ import (
 type lineKind uint8
 
 const (
-	lineKindRow lineKind = iota
-	lineKindColumn
+	LineKindRow lineKind = iota
+	LineKindColumn
 )
 
 func (kind lineKind) String() string {
 	switch kind {
-	case lineKindRow:
+	case LineKindRow:
 		return "Row"
-	case lineKindColumn:
+	case LineKindColumn:
 		return "Col"
 	default:
 		panic("invalid lineKind")
 	}
 }
 
-type lineRef struct {
+// deducer.DeduceLineが参照しているためprivateにできない
+type LineRef struct {
 	kind  lineKind
 	index int
 }
 
-func (ref lineRef) String() string {
+func (ref LineRef) String() string {
 	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
 }
 
-type lineView struct {
-	Cells []game.Cell
-	Hints []int
-}
-
-func (line lineView) IsFilled() bool {
-	return slices.Index(line.Cells, game.CellUndetermined) == -1
-}
-
-type lineAccessor struct {
+type LineAccessor struct {
 	game game.Game
-	ref  lineRef
+	ref  LineRef
 }
 
-func (acc lineAccessor) Cells() []game.Cell {
+func NewLineAccessor(game game.Game, kind lineKind, index int) LineAccessor {
+	return LineAccessor{game, LineRef{kind, index}}
+}
+
+func (acc LineAccessor) Cells() []game.Cell {
 	board := acc.game.Board()
 	index := acc.ref.index
 
 	switch acc.ref.kind {
-	case lineKindRow:
+	case LineKindRow:
 		return board[index]
-	case lineKindColumn:
+	case LineKindColumn:
 		cells := make([]game.Cell, board.GetRows())
 		for i := range board {
 			cells[i] = board[i][index]
@@ -66,14 +61,14 @@ func (acc lineAccessor) Cells() []game.Cell {
 	}
 }
 
-func (acc lineAccessor) Update(cells []game.Cell) {
+func (acc LineAccessor) Update(cells []game.Cell) {
 	switch acc.ref.kind {
-	case lineKindRow:
+	case LineKindRow:
 		row := acc.ref.index
 		for i := range cells {
 			acc.game.SetCell(row, i, cells[i])
 		}
-	case lineKindColumn:
+	case LineKindColumn:
 		col := acc.ref.index
 		for i := range cells {
 			acc.game.SetCell(i, col, cells[i])
@@ -83,4 +78,4 @@ func (acc lineAccessor) Update(cells []game.Cell) {
 	}
 }
 
-func (acc lineAccessor) Ref() lineRef { return acc.ref }
+func (acc LineAccessor) Ref() LineRef { return acc.ref }
