@@ -1,6 +1,8 @@
 package rules
 
-import "github.com/inahym196/picross-solver/pkg/game"
+import (
+	"github.com/inahym196/picross-solver/pkg/game"
+)
 
 func SplitByWhite(cells []game.Cell) [][]game.Cell {
 	var segs [][]game.Cell
