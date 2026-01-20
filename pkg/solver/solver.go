@@ -5,6 +5,7 @@ import (
 
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/accessor"
+	"github.com/inahym196/picross-solver/pkg/solver/internal/cells"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/deducer"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
@@ -17,7 +18,7 @@ func NewSolver() Solver {
 	return Solver{deducer.NewDeducer()}
 }
 
-func (s Solver) ApplyOnce(game game.Game) (deds []deducer.Deduction) {
+func (s Solver) ApplyOnce(game *game.Game) (deds []deducer.Deduction) {
 
 	for i := range game.RowHints {
 		acc := accessor.NewLineAccessor(game, accessor.LineKindRow, i)
@@ -47,7 +48,7 @@ func (s Solver) ApplyOnce(game game.Game) (deds []deducer.Deduction) {
 	return deds
 }
 
-func (s Solver) ApplyMany(game game.Game) (int, []deducer.Deduction) {
+func (s Solver) ApplyMany(game *game.Game) (int, []deducer.Deduction) {
 	var deds []deducer.Deduction
 	for n := 0; ; n++ {
 		if OnceDeds := s.ApplyOnce(game); len(OnceDeds) > 0 {
@@ -56,4 +57,21 @@ func (s Solver) ApplyMany(game game.Game) (int, []deducer.Deduction) {
 		}
 		return n, deds
 	}
+}
+
+type Rule interface {
+	Deduce(cells cells.BitCells, lc line.LineConstraint) cells.BitCells
+}
+
+type Solver2 struct {
+	rules []Rule
+}
+
+func NewSolver2() *Solver2 {
+	return &Solver2{[]Rule{}}
+}
+
+func (s *Solver2) Apply(game game.Game) (deds []deducer.Deduction) {
+	//line := line.NewLineConstraint(game.)
+	return
 }

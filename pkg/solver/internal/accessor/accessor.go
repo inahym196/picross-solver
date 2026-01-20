@@ -1,45 +1,17 @@
 package accessor
 
 import (
-	"fmt"
-
 	"github.com/inahym196/picross-solver/pkg/game"
 )
 
-type lineKind uint8
-
-const (
-	LineKindRow lineKind = iota
-	LineKindColumn
-)
-
-func (kind lineKind) String() string {
-	switch kind {
-	case LineKindRow:
-		return "Row"
-	case LineKindColumn:
-		return "Col"
-	default:
-		panic("invalid lineKind")
-	}
-}
-
 // deducer.DeduceLineが参照しているためprivateにできない
-type LineRef struct {
-	kind  lineKind
-	index int
-}
-
-func (ref LineRef) String() string {
-	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
-}
 
 type LineAccessor struct {
-	game game.Game
+	game *game.Game
 	ref  LineRef
 }
 
-func NewLineAccessor(game game.Game, kind lineKind, index int) LineAccessor {
+func NewLineAccessor(game *game.Game, kind lineKind, index int) LineAccessor {
 	return LineAccessor{game, LineRef{kind, index}}
 }
 
