@@ -49,11 +49,12 @@ func (acc LineAccessor) Cells() []game.Cell {
 
 	switch acc.ref.kind {
 	case LineKindRow:
-		return board[index]
+		return board.Cells()[index]
 	case LineKindColumn:
 		cells := make([]game.Cell, board.GetRows())
-		for i := range board {
-			cells[i] = board[i][index]
+		bcells := board.Cells()
+		for i := range len(bcells) {
+			cells[i] = bcells[i][index]
 		}
 		return cells
 	default:
