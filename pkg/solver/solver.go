@@ -29,8 +29,8 @@ type Solver struct {
 	rules []Rule
 }
 
-func NewSolver() Solver {
-	return Solver{[]Rule{
+func NewSolver() *Solver {
+	return &Solver{[]Rule{
 		rules.ZeroHintRule{},
 		rules.MinimumSpacingRule{},
 		rules.OverlapFillRule{},
@@ -43,19 +43,18 @@ func NewSolver() Solver {
 	}}
 }
 
-func (s Solver) ApplyMany(g *game.Game) (int, []Deduction) {
+func (s *Solver) ApplyMany(g *game.Game) (int, []Deduction) {
 	var ds []Deduction
-	for n := 0; n < 2; n++ {
+	for n := 0; ; n++ {
 		if dsOnce := s.ApplyOnce(g); len(dsOnce) > 0 {
 			ds = append(ds, dsOnce...)
 			continue
 		}
 		return n, ds
 	}
-	return -1, ds
 }
 
-func (s Solver) ApplyOnce(g *game.Game) (ds []Deduction) {
+func (s *Solver) ApplyOnce(g *game.Game) (ds []Deduction) {
 
 	gl := g.Lines()
 	for _, l := range gl {
@@ -88,7 +87,7 @@ func (s Solver) ApplyOnce(g *game.Game) (ds []Deduction) {
 	return ds
 }
 
-func (s Solver) MarkCells(g *game.Game, ref game.LineRef, cells []game.Cell, gl []game.Line) {
+func (s *Solver) MarkCells(g *game.Game, ref game.LineRef, cells []game.Cell, gl []game.Line) {
 	switch ref.Kind {
 	case game.LineKindRow:
 		for i, c := range cells {
