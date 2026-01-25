@@ -8,11 +8,11 @@ import (
 
 	. "github.com/inahym196/picross-solver/internal/testutil"
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/deducer"
+	"github.com/inahym196/picross-solver/pkg/solver"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rules"
 )
 
-func assertRuleIsPure(t *testing.T, r deducer.Rule, line game.Line) {
+func assertRuleIsPure(t *testing.T, r solver.Rule, line game.Line) {
 	t.Helper()
 
 	origCells := slices.Clone(line.Cells)
@@ -50,7 +50,7 @@ func TestSplitByWhite(t *testing.T) {
 
 func TestAllRule(t *testing.T) {
 	tests := []struct {
-		rule     deducer.Rule
+		rule     solver.Rule
 		cells    []game.Cell
 		hints    []int
 		expected []game.Cell

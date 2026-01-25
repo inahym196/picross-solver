@@ -1,12 +1,24 @@
 package solver
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/deducer"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rules"
 )
+
+type Deduction struct {
+	RuleName string
+	Hints    []int
+	LineRef  game.LineRef
+	Before   []game.Cell
+	After    []game.Cell
+}
+
+func (deduction Deduction) String() string {
+	return fmt.Sprintf("%s %s %v %v -> %v", deduction.RuleName, deduction.LineRef, deduction.Hints, deduction.Before, deduction.After)
+}
 
 type Rule interface {
 	Name() string
@@ -31,8 +43,8 @@ func NewSolver() Solver {
 	}}
 }
 
-func (s Solver) ApplyMany(g *game.Game) (int, []deducer.Deduction) {
-	var ds []deducer.Deduction
+func (s Solver) ApplyMany(g *game.Game) (int, []Deduction) {
+	var ds []Deduction
 	for n := 0; n < 2; n++ {
 		if dsOnce := s.ApplyOnce(g); len(dsOnce) > 0 {
 			ds = append(ds, dsOnce...)
@@ -43,11 +55,11 @@ func (s Solver) ApplyMany(g *game.Game) (int, []deducer.Deduction) {
 	return -1, ds
 }
 
-func (s Solver) ApplyOnce(g *game.Game) (ds []deducer.Deduction) {
+func (s Solver) ApplyOnce(g *game.Game) (ds []Deduction) {
 
 	gl := g.Lines()
 	for _, l := range gl {
-		lds := make([]deducer.Deduction, 0)
+		lds := make([]Deduction, 0)
 		for _, rule := range s.rules {
 			current := game.Line{Cells: slices.Clone(l.Cells), Hints: l.Hints, Ref: l.Ref}
 			if slices.Index(current.Cells, game.CellUndetermined) == -1 {
@@ -59,7 +71,7 @@ func (s Solver) ApplyOnce(g *game.Game) (ds []deducer.Deduction) {
 			if updated == nil || slices.Equal(before, updated) {
 				continue
 			}
-			lds = append(lds, deducer.Deduction{
+			lds = append(lds, Deduction{
 				RuleName: rule.Name(),
 				Hints:    current.Hints,
 				LineRef:  current.Ref,
