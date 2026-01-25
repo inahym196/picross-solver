@@ -51,7 +51,7 @@ func (acc LineAccessor) Cells() []game.Cell {
 	case LineKindRow:
 		return board.Cells()[index]
 	case LineKindColumn:
-		cells := make([]game.Cell, board.GetRows())
+		cells := make([]game.Cell, board.Height())
 		bcells := board.Cells()
 		for i := range len(bcells) {
 			cells[i] = bcells[i][index]
@@ -67,12 +67,12 @@ func (acc LineAccessor) Update(cells []game.Cell) {
 	case LineKindRow:
 		row := acc.ref.index
 		for i := range cells {
-			acc.game.SetCell(row, i, cells[i])
+			acc.game.Mark(row, i, cells[i])
 		}
 	case LineKindColumn:
 		col := acc.ref.index
 		for i := range cells {
-			acc.game.SetCell(i, col, cells[i])
+			acc.game.Mark(i, col, cells[i])
 		}
 	default:
 		panic("invalid linekind accessor")
