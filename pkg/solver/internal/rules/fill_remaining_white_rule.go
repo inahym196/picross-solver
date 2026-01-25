@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // すべての hint を満たした後の残りは白
@@ -14,7 +13,7 @@ func (r FillRemainingWhiteRule) Name() string {
 	return "FillRemainingWhiteRule"
 }
 
-func (r FillRemainingWhiteRule) Deduce(line line.Line) []game.Cell {
+func (r FillRemainingWhiteRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	sumHints := 0

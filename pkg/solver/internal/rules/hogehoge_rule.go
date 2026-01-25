@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 type HogeHogeRule struct{}
@@ -138,7 +137,7 @@ func (r HogeHogeRule) tryDrawWhite(cells []game.Cell, index int) bool {
 	return false
 }
 
-func (r HogeHogeRule) Deduce(line line.Line) []game.Cell {
+func (r HogeHogeRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	changed := false
 

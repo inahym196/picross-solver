@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // 黒と白の配置が一意に決まる
@@ -14,7 +13,7 @@ func (r MinimumSpacingRule) Name() string {
 	return "MinimumSpacingRule"
 }
 
-func (r MinimumSpacingRule) Deduce(line line.Line) []game.Cell {
+func (r MinimumSpacingRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	trim := trimWhite(cells)
 

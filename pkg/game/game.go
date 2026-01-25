@@ -50,15 +50,14 @@ func (b *Board) Row(i int) []Cell { return slices.Clone(b.cells[i]) }
 func (b *Board) Col(i int) []Cell {
 	cells := make([]Cell, b.height)
 	for row := range b.height {
-		cells[i] = b.cells[row][i]
+		cells[row] = b.cells[row][i]
 	}
 	return cells
 }
 
 func (b *Board) Cells() [][]Cell {
-	h := len(b.cells)
-	cells := make([][]Cell, h)
-	for i := range h {
+	cells := make([][]Cell, b.height)
+	for i := range b.height {
 		cells[i] = slices.Clone(b.cells[i])
 	}
 	return cells
@@ -122,28 +121,49 @@ func (ref LineRef) String() string {
 	return fmt.Sprintf("%s[%d]", ref.Kind, ref.Index)
 }
 
+type Line struct {
+	Cells []Cell
+	Hints []int
+	Ref   LineRef
+}
+
 type Game struct {
 	board    *Board
-	RowHints [][]int
-	ColHints [][]int
+	rowHints [][]int
+	colHints [][]int
 }
 
-func NewGame(rowHints, colHints [][]int) (Game, error) {
+func NewGame(rowHints, colHints [][]int) (*Game, error) {
 	if len(rowHints) == 0 || len(colHints) == 0 {
-		return Game{}, errors.New("rowHints,colHintsは1より大きい必要がある")
+		return nil, errors.New("rowHints,colHintsは1より大きい必要がある")
 	}
 	// TODO: hintsの最小配置がlen(cell)より小さい必要がある
-	width := len(colHints)
-	height := len(rowHints)
-
-	b := NewBoard(height, width)
-	return Game{b, rowHints, colHints}, nil
+	b := NewBoard(len(rowHints), len(colHints))
+	return &Game{b, rowHints, colHints}, nil
 }
 
-func (g Game) Board() *Board {
+func (g *Game) Cells() [][]Cell { return g.board.Cells() }
+
+func (g *Game) Lines() []Line {
+	lines := make([]Line, g.board.height+g.board.width)
+
+	for i := range g.board.height {
+		ref := LineRef{LineKindRow, i}
+		lines[i] = Line{g.board.Row(i), g.rowHints[i], ref}
+	}
+
+	for i := range g.board.width {
+		ref := LineRef{LineKindColumn, i}
+		lines[g.board.height+i] = Line{g.board.Col(i), g.colHints[i], ref}
+	}
+	return lines
+}
+
+func (g *Game) Board() *Board {
 	return g.board
 }
 
-func (g Game) Mark(row, col int, cell Cell) error {
+func (g *Game) Mark(row, col int, cell Cell) error {
+	// TODO: Hintとの整合性処理はここに入れる
 	return g.board.Mark(row, col, cell)
 }

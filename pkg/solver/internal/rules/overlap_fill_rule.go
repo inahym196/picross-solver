@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // ヒントブロックを左詰め／右詰めしたときに必ず重なる部分を黒確定
@@ -78,7 +77,7 @@ func (r OverlapFillRule) rightAlignedStarts(cells []game.Cell, hints []int) []in
 	return starts
 }
 
-func (r OverlapFillRule) Deduce(line line.Line) []game.Cell {
+func (r OverlapFillRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	leftStarts := r.leftAlignedStarts(cells, line.Hints)

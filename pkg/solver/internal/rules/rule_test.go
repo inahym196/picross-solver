@@ -6,19 +6,13 @@ import (
 	"slices"
 	"testing"
 
+	. "github.com/inahym196/picross-solver/internal/testutil"
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/deducer"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rules"
 )
 
-const (
-	U = game.CellUndetermined
-	W = game.CellWhite
-	B = game.CellBlack
-)
-
-func assertRuleIsPure(t *testing.T, r deducer.Rule, line line.Line) {
+func assertRuleIsPure(t *testing.T, r deducer.Rule, line game.Line) {
 	t.Helper()
 
 	origCells := slices.Clone(line.Cells)
@@ -103,7 +97,7 @@ func TestAllRule(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%s-case%d", tt.rule.Name(), i), func(t *testing.T) {
-			line := line.Line{Cells: tt.cells, Hints: tt.hints}
+			line := game.Line{Cells: tt.cells, Hints: tt.hints}
 			assertRuleIsPure(t, tt.rule, line)
 
 			got := tt.rule.Deduce(line)
