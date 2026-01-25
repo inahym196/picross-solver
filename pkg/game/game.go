@@ -95,6 +95,33 @@ func (b *Board) Print() []string {
 	return ss
 }
 
+type LineKind uint8
+
+const (
+	LineKindRow LineKind = iota
+	LineKindColumn
+)
+
+func (kind LineKind) String() string {
+	switch kind {
+	case LineKindRow:
+		return "Row"
+	case LineKindColumn:
+		return "Col"
+	default:
+		panic("invalid lineKind")
+	}
+}
+
+type LineRef struct {
+	Kind  LineKind
+	Index int
+}
+
+func (ref LineRef) String() string {
+	return fmt.Sprintf("%s[%d]", ref.Kind, ref.Index)
+}
+
 type Game struct {
 	board    *Board
 	RowHints [][]int

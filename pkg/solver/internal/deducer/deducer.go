@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/accessor"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rules"
 )
@@ -13,7 +12,7 @@ import (
 type Deduction struct {
 	RuleName string
 	Hints    []int
-	LineRef  accessor.LineRef
+	LineRef  game.LineRef
 	Before   []game.Cell
 	After    []game.Cell
 }
@@ -47,7 +46,7 @@ func NewDeducer() Deducer {
 	}
 }
 
-func (d Deducer) DeduceLine(line line.Line, ref accessor.LineRef) (deds []Deduction) {
+func (d Deducer) DeduceLine(line line.Line, ref game.LineRef) (deds []Deduction) {
 	current := line
 
 	for _, rule := range d.rules {

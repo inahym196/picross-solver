@@ -1,56 +1,26 @@
 package accessor
 
 import (
-	"fmt"
-
 	"github.com/inahym196/picross-solver/pkg/game"
 )
 
-type lineKind uint8
-
-const (
-	LineKindRow lineKind = iota
-	LineKindColumn
-)
-
-func (kind lineKind) String() string {
-	switch kind {
-	case LineKindRow:
-		return "Row"
-	case LineKindColumn:
-		return "Col"
-	default:
-		panic("invalid lineKind")
-	}
-}
-
-// deducer.DeduceLineが参照しているためprivateにできない
-type LineRef struct {
-	kind  lineKind
-	index int
-}
-
-func (ref LineRef) String() string {
-	return fmt.Sprintf("%s[%d]", ref.kind, ref.index)
-}
-
 type LineAccessor struct {
 	game game.Game
-	ref  LineRef
+	ref  game.LineRef
 }
 
-func NewLineAccessor(game game.Game, kind lineKind, index int) LineAccessor {
-	return LineAccessor{game, LineRef{kind, index}}
+func NewLineAccessor(g game.Game, kind game.LineKind, index int) LineAccessor {
+	return LineAccessor{g, game.LineRef{Kind: kind, Index: index}}
 }
 
 func (acc LineAccessor) Cells() []game.Cell {
 	board := acc.game.Board()
-	index := acc.ref.index
+	index := acc.ref.Index
 
-	switch acc.ref.kind {
-	case LineKindRow:
+	switch acc.ref.Kind {
+	case game.LineKindRow:
 		return board.Cells()[index]
-	case LineKindColumn:
+	case game.LineKindColumn:
 		cells := make([]game.Cell, board.Height())
 		bcells := board.Cells()
 		for i := range len(bcells) {
@@ -63,14 +33,14 @@ func (acc LineAccessor) Cells() []game.Cell {
 }
 
 func (acc LineAccessor) Update(cells []game.Cell) {
-	switch acc.ref.kind {
-	case LineKindRow:
-		row := acc.ref.index
+	switch acc.ref.Kind {
+	case game.LineKindRow:
+		row := acc.ref.Index
 		for i := range cells {
 			acc.game.Mark(row, i, cells[i])
 		}
-	case LineKindColumn:
-		col := acc.ref.index
+	case game.LineKindColumn:
+		col := acc.ref.Index
 		for i := range cells {
 			acc.game.Mark(i, col, cells[i])
 		}
@@ -79,4 +49,4 @@ func (acc LineAccessor) Update(cells []game.Cell) {
 	}
 }
 
-func (acc LineAccessor) Ref() LineRef { return acc.ref }
+func (acc LineAccessor) Ref() game.LineRef { return acc.ref }

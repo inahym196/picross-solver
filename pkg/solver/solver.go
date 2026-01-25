@@ -17,13 +17,13 @@ func NewSolver() Solver {
 	return Solver{deducer.NewDeducer()}
 }
 
-func (s Solver) ApplyOnce(game game.Game) (deds []deducer.Deduction) {
+func (s Solver) ApplyOnce(g game.Game) (deds []deducer.Deduction) {
 
-	for i := range game.RowHints {
-		acc := accessor.NewLineAccessor(game, accessor.LineKindRow, i)
+	for i := range g.RowHints {
+		acc := accessor.NewLineAccessor(g, game.LineKindRow, i)
 		line := line.Line{
 			Cells: acc.Cells(),
-			Hints: slices.Clone(game.RowHints[i]),
+			Hints: slices.Clone(g.RowHints[i]),
 		}
 
 		if lineDeds := s.deducer.DeduceLine(line, acc.Ref()); len(lineDeds) > 0 {
@@ -32,11 +32,11 @@ func (s Solver) ApplyOnce(game game.Game) (deds []deducer.Deduction) {
 			deds = append(deds, lineDeds...)
 		}
 	}
-	for i := range game.ColHints {
-		acc := accessor.NewLineAccessor(game, accessor.LineKindColumn, i)
+	for i := range g.ColHints {
+		acc := accessor.NewLineAccessor(g, game.LineKindColumn, i)
 		line := line.Line{
 			Cells: acc.Cells(),
-			Hints: slices.Clone(game.ColHints[i]),
+			Hints: slices.Clone(g.ColHints[i]),
 		}
 		if lineDeds := s.deducer.DeduceLine(line, acc.Ref()); len(lineDeds) > 0 {
 			last := lineDeds[len(lineDeds)-1]
