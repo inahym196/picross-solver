@@ -142,6 +142,8 @@ func NewGame(rowHints, colHints [][]int) (*Game, error) {
 	return &Game{b, rowHints, colHints}, nil
 }
 
+func (g *Game) Width() int { return len(g.colHints) }
+
 func (g *Game) Cells() [][]Cell { return g.board.Cells() }
 
 func (g *Game) Lines() []Line {
