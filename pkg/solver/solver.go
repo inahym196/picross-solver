@@ -80,14 +80,14 @@ func (s *Solver) ApplyOnce(g *game.Game) (ds []Deduction) {
 		}
 		if len(lds) > 0 {
 			last := lds[len(lds)-1]
-			s.MarkCells(g, last.LineRef, last.After, gl)
+			s.MarkCells(g, last.LineRef, last.After)
 			ds = append(ds, lds...)
 		}
 	}
 	return ds
 }
 
-func (s *Solver) MarkCells(g *game.Game, ref game.LineRef, cells []game.Cell, gl []game.Line) {
+func (s *Solver) MarkCells(g *game.Game, ref game.LineRef, cells []game.Cell) {
 	switch ref.Kind {
 	case game.LineKindRow:
 		for i, c := range cells {
