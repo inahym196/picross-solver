@@ -6,10 +6,15 @@ import (
 	"slices"
 	"testing"
 
-	. "github.com/inahym196/picross-solver/internal/testutil"
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rules"
+)
+
+const (
+	U = game.CellUndetermined
+	W = game.CellWhite
+	B = game.CellBlack
 )
 
 func assertRuleIsPure(t *testing.T, r solver.Rule, line game.Line) {

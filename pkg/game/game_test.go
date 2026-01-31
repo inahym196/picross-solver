@@ -4,8 +4,13 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/inahym196/picross-solver/internal/testutil"
 	"github.com/inahym196/picross-solver/pkg/game"
+)
+
+const (
+	U = game.CellUndetermined
+	W = game.CellWhite
+	B = game.CellBlack
 )
 
 func TestBoard_Mark(t *testing.T) {
