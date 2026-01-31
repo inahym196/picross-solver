@@ -40,6 +40,17 @@ func (run RunPlacement) Fixed(start int) RunPlacement {
 	}
 }
 
+func (run RunPlacement) WithMaxStart(max int) (RunPlacement, bool) {
+	if max < run.MinStart {
+		return run, false
+	}
+	if max >= run.MaxStart {
+		return run, false
+	}
+	run.MaxStart = max
+	return run, true
+}
+
 const MaxRuns = 16 // uint32, 32/2 = 16
 
 type RunPlacements struct {
@@ -49,11 +60,11 @@ type RunPlacements struct {
 
 func (runs RunPlacements) Equals(other RunPlacements) bool { return runs == other }
 func (runs RunPlacements) Count() int                      { return runs.count }
-func (runs RunPlacements) At(i int) (RunPlacement, error) {
+func (runs RunPlacements) At(i int) (RunPlacement, bool) {
 	if !runs.inBounds(i) {
-		return RunPlacement{}, fmt.Errorf("out of range: %d", i)
+		return RunPlacement{}, false
 	}
-	return runs.runs[i], nil
+	return runs.runs[i], true
 }
 
 func (runs RunPlacements) Append(run RunPlacement) error {
@@ -72,12 +83,12 @@ func (runs RunPlacements) ForcedMask() bits.Bits {
 	}
 	return mask
 }
-func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, error) {
+func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool) {
 	if !runs.inBounds(i) {
-		return RunPlacements{}, fmt.Errorf("out of range")
+		return runs, false
 	}
 	runs.runs[i] = run
-	return runs, nil
+	return runs, true
 }
 
 func (runs RunPlacements) inBounds(i int) bool { return 0 <= i && i < runs.count }

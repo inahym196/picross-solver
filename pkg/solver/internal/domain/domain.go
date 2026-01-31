@@ -31,9 +31,12 @@ func NewLineDomain(lineLen int, hints []int) LineDomain {
 	return LineDomain{lineLen, runs}
 }
 
-func (ld LineDomain) Len() int                        { return ld.runs.count }
-func (ld LineDomain) Run(i int) (RunPlacement, error) { return ld.runs.At(i) }
-func (ld LineDomain) Equals(other LineDomain) bool    { return ld.runs.Equals(other.runs) }
+func (ld LineDomain) LineLen() int                   { return ld.lineLen }
+func (ld LineDomain) RunsCount() int                 { return ld.runs.Count() }
+func (ld LineDomain) Run(i int) (RunPlacement, bool) { return ld.runs.At(i) }
+func (ld LineDomain) Equals(other LineDomain) bool {
+	return ld.lineLen == other.lineLen && ld.runs.Equals(other.runs)
+}
 
 func (ld LineDomain) Project() bits.Cells {
 
@@ -49,18 +52,18 @@ func (ld LineDomain) Project() bits.Cells {
 	return bits.NewCells(ld.lineLen).MarkedBlacks(ld.runs.ForcedMask())
 }
 
-func (ld LineDomain) NarrowedMax(i int, maxStart int) LineDomain {
-	run, err := ld.runs.At(i)
-	if err != nil {
-		panic("invalid")
+func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {
+	run, ok := ld.runs.At(i)
+	if !ok {
+		return ld, false
 	}
-	if maxStart >= run.MaxStart {
-		panic("invalid")
+	newRun, changed := run.WithMaxStart(maxStart)
+	if !changed {
+		return ld, false
 	}
-	run.MaxStart = maxStart
-	ld.runs, err = ld.runs.Replaced(i, run)
-	if err != nil {
-		panic("invalid")
+	newRuns, ok := ld.runs.Replaced(i, newRun)
+	if !ok {
+		return ld, false
 	}
-	return ld
+	return LineDomain{ld.lineLen, newRuns}, true
 }
