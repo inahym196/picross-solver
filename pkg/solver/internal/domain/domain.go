@@ -10,7 +10,7 @@ type LineDomain struct {
 	runs    RunPlacements
 }
 
-func NewLineDomain(lineLen int, hints []int) LineDomain {
+func NewLineDomain(lineLen int, hints []int) (LineDomain, error) {
 	runs := RunPlacements{}
 
 	var sum int
@@ -20,15 +20,19 @@ func NewLineDomain(lineLen int, hints []int) LineDomain {
 	minLength := sum + len(hints) - 1
 	margin := lineLen - minLength
 	start := 0
+	var err error = nil
 	for _, hint := range hints {
-		runs.Append(RunPlacement{
+		runs, err = runs.Append(RunPlacement{
 			MinStart: start,
 			MaxStart: start + margin,
 			Len:      hint,
 		})
+		if err != nil {
+			return LineDomain{}, err
+		}
 		start += hint + 1
 	}
-	return LineDomain{lineLen, runs}
+	return LineDomain{lineLen, runs}, nil
 }
 
 func (ld LineDomain) LineLen() int                   { return ld.lineLen }

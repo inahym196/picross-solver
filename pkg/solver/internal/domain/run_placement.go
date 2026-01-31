@@ -67,13 +67,13 @@ func (runs RunPlacements) At(i int) (RunPlacement, bool) {
 	return runs.runs[i], true
 }
 
-func (runs RunPlacements) Append(run RunPlacement) error {
+func (runs RunPlacements) Append(run RunPlacement) (RunPlacements, error) {
 	if runs.count >= MaxRuns {
-		return fmt.Errorf("capacity over. maxRuns: %d", MaxRuns)
+		return runs, fmt.Errorf("capacity over. maxRuns: %d", MaxRuns)
 	}
 	runs.runs[runs.count] = run
 	runs.count++
-	return nil
+	return runs, nil
 }
 
 func (runs RunPlacements) ForcedMask() bits.Bits {

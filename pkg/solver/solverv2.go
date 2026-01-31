@@ -1,8 +1,6 @@
 package solver
 
 import (
-	"fmt"
-
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/domain"
@@ -31,13 +29,15 @@ func (s *SolverV2) ApplyMany(g *game.Game) (n int, h *history.History) {
 
 func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
 	for _, gl := range g.Lines() {
-		domain := domain.NewLineDomain(g.Width(), gl.Hints)
+		domain, err := domain.NewLineDomain(g.Width(), gl.Hints)
+		if err != nil {
+			panic(err)
+		}
 		lh := s.NarrowLine(bits.FromCells(gl.Cells), domain)
 		if lh.IsEmpty() {
 			continue
 		}
 		cells := lh.Last().Domain.Project()
-		fmt.Printf("cells: %v\n", cells)
 		s.MarkCells(g, gl.Ref, cells)
 		h.Merge(lh)
 	}
