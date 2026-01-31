@@ -95,6 +95,10 @@ func TestV2E2E(t *testing.T) {
 			boardStrings := game.Board().Print()
 			if !reflect.DeepEqual(boardStrings, tt.expected) {
 				t.Errorf("expected %v, got %v", tt.expected, boardStrings)
+				if hs == nil {
+					t.Log("logs: nil")
+					t.SkipNow()
+				}
 				t.Log("logs: ")
 				for _, h := range hs.All() {
 					t.Logf("  %+v\n", h)
