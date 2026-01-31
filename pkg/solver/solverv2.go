@@ -1,6 +1,8 @@
 package solver
 
 import (
+	math_bits "math/bits"
+
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/domain"
@@ -28,17 +30,26 @@ func (s *SolverV2) ApplyMany(g *game.Game) (n int, h *history.History) {
 }
 
 func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
+
 	for _, gl := range g.Lines() {
 		domain, err := domain.NewLineDomain(g.Width(), gl.Hints)
 		if err != nil {
 			panic(err)
 		}
+
+		current := bits.FromCells(gl.Cells)
+		if domain.IsDeterministic() {
+			s.applyProjection(g, gl.Ref, current, domain.Project())
+			continue
+		}
+
 		lh := s.NarrowLine(bits.FromCells(gl.Cells), domain)
 		if lh.IsEmpty() {
 			continue
 		}
-		cells := lh.Last().Domain.Project()
-		s.MarkCells(g, gl.Ref, cells)
+
+		projected := lh.Last().Domain.Project()
+		s.applyProjection(g, gl.Ref, current, projected)
 		h.Merge(lh)
 	}
 	return h
@@ -56,6 +67,32 @@ func (s *SolverV2) NarrowLine(cells bits.Cells, d domain.LineDomain) (h history.
 	return h
 }
 
+func (s *SolverV2) applyProjection(g *game.Game, ref game.LineRef, current bits.Cells, projected bits.Cells) {
+	updated, conflict := current.Merged(projected)
+	if conflict {
+		panic("conflict")
+	}
+	if updated.Equals(current) {
+		return
+	}
+	s.MarkCells(g, ref, updated)
+}
+
 func (s *SolverV2) MarkCells(g *game.Game, ref game.LineRef, cells bits.Cells) {
-	//panic("not implemented yet")
+
+	processBits := func(bits uint32, cell game.Cell) {
+		for bits != 0 {
+			i := math_bits.TrailingZeros32(bits)
+			var row, col int
+			if ref.Kind == game.LineKindRow {
+				row, col = ref.Index, i
+			} else {
+				row, col = i, ref.Index
+			}
+			g.Mark(row, col, cell)
+			bits &= bits - 1
+		}
+	}
+	processBits(uint32(cells.Blacks), game.CellBlack)
+	processBits(uint32(cells.Whites), game.CellWhite)
 }

@@ -71,3 +71,13 @@ func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {
 	}
 	return LineDomain{ld.lineLen, newRuns}, true
 }
+
+func (ld LineDomain) IsDeterministic() bool {
+	if count := ld.runs.Count(); count == 1 {
+		run, _ := ld.runs.At(0)
+		if run.Len == 0 || run.Len == count {
+			return true
+		}
+	}
+	return ld.runs.IsExactFit()
+}

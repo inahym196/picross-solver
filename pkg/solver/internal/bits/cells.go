@@ -78,3 +78,15 @@ func (c Cells) LeftMostBlackNotWhite() (int, bool) {
 	}
 	return bits.TrailingZeros32(uint32(target)), true
 }
+
+func (c Cells) Merged(other Cells) (Cells, bool) {
+	if c.Len != other.Len {
+		panic("cells length mismatch")
+	}
+	blacks := c.Blacks | other.Blacks
+	whites := c.Whites | other.Whites
+	if blacks&whites != 0 {
+		return Cells{}, true
+	}
+	return Cells{c.Len, blacks, whites}, false
+}

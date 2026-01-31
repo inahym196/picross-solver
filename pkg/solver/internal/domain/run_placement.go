@@ -91,4 +91,13 @@ func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool
 	return runs, true
 }
 
+func (runs RunPlacements) IsExactFit() bool {
+	for _, run := range runs.runs {
+		if run.MinStart == run.MaxStart {
+			return false
+		}
+	}
+	return true
+}
+
 func (runs RunPlacements) inBounds(i int) bool { return 0 <= i && i < runs.count }
