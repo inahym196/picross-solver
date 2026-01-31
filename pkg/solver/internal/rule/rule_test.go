@@ -2,6 +2,7 @@ package rule_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/inahym196/picross-solver/pkg/game"
@@ -19,17 +20,15 @@ const (
 
 func TestAllRuleV2(t *testing.T) {
 	tests := []struct {
-		rule        solver.RuleV2
-		cells       bits.Cells
-		domainFunc  func() (domain.LineDomain, error)
-		wantChanged bool
-		wantCells   bits.Cells
+		rule       solver.RuleV2
+		cells      bits.Cells
+		domainFunc func() (domain.LineDomain, error)
+		wantCells  bits.Cells
 	}{
 		{
 			rule.EdgeExpansionRule{},
 			bits.FromCells([]game.Cell{U, B, U, U, U, U}),
 			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{3}) },
-			true,
 			bits.FromCells([]game.Cell{U, B, B, U, U, U}),
 		},
 	}
@@ -43,9 +42,10 @@ func TestAllRuleV2(t *testing.T) {
 			}
 
 			got, changed := tt.rule.Narrow(tt.cells, domain)
+			wantChanged := !reflect.DeepEqual(tt.cells, tt.wantCells)
 
-			if tt.wantChanged != changed {
-				t.Errorf("want Changed: %T, got %T", tt.wantChanged, changed)
+			if wantChanged != changed {
+				t.Errorf("want Changed: %t, got %t", wantChanged, changed)
 			}
 			if tt.wantCells != got.Project() {
 				t.Errorf("expected %v, got %v", tt.wantCells, got.Project())
