@@ -49,12 +49,12 @@ func (ld LineDomain) Equals(other LineDomain) bool {
 
 func (ld LineDomain) Project() (bits.Cells, error) {
 
-	if count := ld.runs.Count(); count == 1 {
+	if ld.runs.Count() == 1 {
 		run, _ := ld.runs.At(0)
 		switch run.Len {
 		case 0:
 			return bits.NewCellsWithWhiteMasked(ld.lineLen), nil
-		case count:
+		case ld.lineLen:
 			return bits.NewCellsWithBlackMasked(ld.lineLen), nil
 		}
 	}

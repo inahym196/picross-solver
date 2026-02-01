@@ -123,7 +123,7 @@ func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool
 
 func (runs RunPlacements) IsExactFit() bool {
 	for _, run := range runs.runs {
-		if run.MinStart == run.MaxStart {
+		if run.MinStart != run.MaxStart {
 			return false
 		}
 	}
