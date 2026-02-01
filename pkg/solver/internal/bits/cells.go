@@ -70,13 +70,8 @@ func (c Cells) MarkedWhites(b Bits) Cells {
 	return Cells{c.Len, c.Blacks &^ b, c.Whites | b}
 }
 
-func (c Cells) LeftMostBlackNotWhite() (int, bool) {
-	mask := Bits(1<<c.Len - 1)
-	target := c.Blacks &^ c.Whites & mask
-	if target == 0 {
-		return 0, false
-	}
-	return bits.TrailingZeros32(uint32(target)), true
+func (c Cells) MostLeftBlack() int {
+	return bits.TrailingZeros32(uint32(c.Blacks))
 }
 
 func (c Cells) Merged(other Cells) (Cells, bool) {

@@ -13,10 +13,7 @@ func (r EdgeExpansionRule) Narrow(cells bits.Cells, domain domain.LineDomain) (d
 	if domain.RunsCount() < 1 {
 		return domain, false
 	}
-	mostLeftBlack, found := cells.LeftMostBlackNotWhite()
-	if !found {
-		return domain, false
-	}
+	mostLeftBlack := cells.MostLeftBlack()
 	run, _ := domain.Run(0)
 	if !run.CoversLeft(mostLeftBlack) {
 		return domain, false
