@@ -66,7 +66,7 @@ func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {
 		return ld, false
 	}
 	newRuns, ok := ld.runs.Replaced(i, newRun)
-	if !ok {
+	if !ok || newRun.Equals(run) {
 		return ld, false
 	}
 	return LineDomain{ld.lineLen, newRuns}, true

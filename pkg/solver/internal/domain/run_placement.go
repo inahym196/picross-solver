@@ -51,6 +51,8 @@ func (run RunPlacement) WithMaxStart(max int) (RunPlacement, bool) {
 	return run, true
 }
 
+func (run RunPlacement) Equals(other RunPlacement) bool { return run == other }
+
 const MaxRuns = 16 // uint32, 32/2 = 16
 
 type RunPlacements struct {
