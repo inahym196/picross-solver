@@ -10,6 +10,16 @@ import (
 	"github.com/inahym196/picross-solver/pkg/solver/internal/history"
 )
 
+type testLogger struct {
+	t *testing.T
+}
+
+func (l testLogger) Logf(format string, args ...any) {
+	l.t.Logf(format, args...)
+}
+
+func (l testLogger) Verbose() bool { return true }
+
 func TestV2E2E(t *testing.T) {
 	tests := []struct {
 		rowHints [][]int
@@ -86,7 +96,7 @@ func TestV2E2E(t *testing.T) {
 			},
 		},
 	}
-	solver := solver.NewSolverV2()
+	solver := solver.NewSolverV2(solver.WithLogger(testLogger{t}))
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 			game, _ := game.NewGame(tt.rowHints, tt.colHints)

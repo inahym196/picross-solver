@@ -91,14 +91,14 @@ func (s *Solver) MarkCells(g *game.Game, ref game.LineRef, cells []game.Cell) {
 	switch ref.Kind {
 	case game.LineKindRow:
 		for i, c := range cells {
-			err := g.Mark(ref.Index, i, c)
+			_, err := g.Mark(ref.Index, i, c)
 			if err != nil {
 				panic(err)
 			}
 		}
 	case game.LineKindColumn:
 		for i, c := range cells {
-			err := g.Mark(i, ref.Index, c)
+			_, err := g.Mark(i, ref.Index, c)
 			if err != nil {
 				panic(err)
 			}

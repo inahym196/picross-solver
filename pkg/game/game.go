@@ -64,12 +64,15 @@ func (b *Board) Cells() [][]Cell {
 	return cells
 }
 
-func (b *Board) Mark(row, col int, cell Cell) error {
+func (b *Board) Mark(row, col int, cell Cell) (bool, error) {
 	if !b.inBounds(row, col) {
-		return fmt.Errorf("out of range")
+		return false, fmt.Errorf("out of range")
+	}
+	if b.cells[row][col] == cell {
+		return false, nil
 	}
 	b.cells[row][col] = cell
-	return nil
+	return true, nil
 }
 
 func (b *Board) inBounds(row, col int) bool {
@@ -208,7 +211,7 @@ func (g *Game) Board() *Board {
 	return g.board
 }
 
-func (g *Game) Mark(row, col int, cell Cell) error {
+func (g *Game) Mark(row, col int, cell Cell) (bool, error) {
 	// TODO: Hintとの整合性処理はここに入れる
 	return g.board.Mark(row, col, cell)
 }
