@@ -53,17 +53,18 @@ func (s *SolverV2) applyLine(g *game.Game, l game.Line, h *history.History) {
 		s.applyProjection(g, l.Ref, current, updated)
 		return
 	}
-	if narrowed := s.narrowLine(bits.FromCells(l.Cells), d, h); narrowed == false {
+	lastD, narrowed := s.narrowLine(bits.FromCells(l.Cells), d, h)
+	if narrowed == false {
 		return
 	}
-	updated, err := h.Last().Domain.Project()
+	updated, err := lastD.Project()
 	if err != nil {
 		panic(err)
 	}
 	s.applyProjection(g, l.Ref, current, updated)
 }
 
-func (s *SolverV2) narrowLine(cells bits.Cells, d domain.LineDomain, h *history.History) (narrowed bool) {
+func (s *SolverV2) narrowLine(cells bits.Cells, d domain.LineDomain, h *history.History) (last domain.LineDomain, narrowed bool) {
 	for _, rule := range s.rules {
 		newD, changed := rule.Narrow(cells, d)
 		if !changed || newD.Equals(d) {
@@ -73,7 +74,7 @@ func (s *SolverV2) narrowLine(cells bits.Cells, d domain.LineDomain, h *history.
 		h.Append(history.Step{RuleName: rule.Name(), Domain: newD})
 		narrowed = true
 	}
-	return narrowed
+	return d, narrowed
 }
 
 func (s *SolverV2) applyProjection(g *game.Game, ref game.LineRef, current bits.Cells, projected bits.Cells) {

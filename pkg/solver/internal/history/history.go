@@ -24,8 +24,6 @@ func (h *History) Append(steps ...Step) {
 
 func (h *History) IsEmpty() bool { return len(h.steps) == 0 }
 
-func (h *History) Last() Step { return h.steps[len(h.steps)-1] }
-
 func (h *History) All() iter.Seq2[int, Step] {
 	return slices.All(h.steps)
 }
