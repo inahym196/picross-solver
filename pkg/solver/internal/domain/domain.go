@@ -53,7 +53,7 @@ func (ld LineDomain) Project() bits.Cells {
 			return bits.NewCellsWithBlackMasked(ld.lineLen)
 		}
 	}
-	return bits.NewCells(ld.lineLen).MarkedBlacks(ld.runs.ForcedMask())
+	return bits.NewCells(ld.lineLen).MarkedBlacks(ld.runs.CoveredMask())
 }
 
 func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {

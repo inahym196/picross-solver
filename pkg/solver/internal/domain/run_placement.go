@@ -12,7 +12,7 @@ type RunPlacement struct {
 	Len      int
 }
 
-func (run RunPlacement) ForcedMask() bits.Bits {
+func (run RunPlacement) CoveredMask() bits.Bits {
 	end := run.MinStart + run.Len
 	if run.MaxStart >= end {
 		return 0
@@ -78,13 +78,14 @@ func (runs RunPlacements) Append(run RunPlacement) (RunPlacements, error) {
 	return runs, nil
 }
 
-func (runs RunPlacements) ForcedMask() bits.Bits {
+func (runs RunPlacements) CoveredMask() bits.Bits {
 	var mask bits.Bits
 	for i := range runs.count {
-		mask |= runs.runs[i].ForcedMask()
+		mask |= runs.runs[i].CoveredMask()
 	}
 	return mask
 }
+
 func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool) {
 	if !runs.inBounds(i) {
 		return runs, false
