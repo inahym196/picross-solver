@@ -25,70 +25,45 @@ func NewSolverV2() *SolverV2 {
 	}}
 }
 
-func (s *SolverV2) ApplyMany(g *game.Game) (n int, h *history.History) {
-	return 1, s.Apply(g)
+func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
+	s.Apply(g, h)
+	return 1
 }
 
-func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
-
+func (s *SolverV2) Apply(g *game.Game, h *history.History) {
 	for row := range g.AllRows() {
-		d, err := domain.NewLineDomain(g.Width(), row.Hints)
-		if err != nil {
-			panic(err)
-		}
-		current := bits.FromCells(row.Cells)
-		if d.IsDeterministic() {
-			updated, err := d.Project()
-			if err != nil {
-				panic(err)
-			}
-			s.applyProjection(g, row.Ref, current, updated)
-			continue
-		}
-		lh := s.NarrowLine(bits.FromCells(row.Cells), d)
-		if lh.IsEmpty() {
-			continue
-		}
-		updated, err := lh.Last().Domain.Project()
-		if err != nil {
-			panic(err)
-		}
-		s.applyProjection(g, row.Ref, current, updated)
-		h.Merge(lh)
+		s.applyLine(g, row, h)
 	}
-
 	for col := range g.AllColumns() {
-		d, err := domain.NewLineDomain(g.Width(), col.Hints)
-		if err != nil {
-			panic(err)
-		}
-
-		current := bits.FromCells(col.Cells)
-		if d.IsDeterministic() {
-			pj, err := d.Project()
-			if err != nil {
-				panic(err)
-			}
-			s.applyProjection(g, col.Ref, current, pj)
-			continue
-		}
-
-		lh := s.NarrowLine(bits.FromCells(col.Cells), d)
-		if lh.IsEmpty() {
-			continue
-		}
-
-		updated, err := lh.Last().Domain.Project()
-		if err != nil {
-			panic(err)
-		}
-		s.applyProjection(g, col.Ref, current, updated)
-		h.Merge(lh)
+		s.applyLine(g, col, h)
 	}
-	return h
 }
 
-func (s *SolverV2) NarrowLine(cells bits.Cells, d domain.LineDomain) (h history.History) {
+func (s *SolverV2) applyLine(g *game.Game, l game.Line, h *history.History) {
+	d, err := domain.NewLineDomain(g.Width(), l.Hints)
+	if err != nil {
+		panic(err)
+	}
+	current := bits.FromCells(l.Cells)
+	if d.IsDeterministic() {
+		updated, err := d.Project()
+		if err != nil {
+			panic(err)
+		}
+		s.applyProjection(g, l.Ref, current, updated)
+		return
+	}
+	if narrowed := s.narrowLine(bits.FromCells(l.Cells), d, h); narrowed == false {
+		return
+	}
+	updated, err := h.Last().Domain.Project()
+	if err != nil {
+		panic(err)
+	}
+	s.applyProjection(g, l.Ref, current, updated)
+}
+
+func (s *SolverV2) narrowLine(cells bits.Cells, d domain.LineDomain, h *history.History) (narrowed bool) {
 	for _, rule := range s.rules {
 		newD, changed := rule.Narrow(cells, d)
 		if !changed || newD.Equals(d) {
@@ -96,8 +71,9 @@ func (s *SolverV2) NarrowLine(cells bits.Cells, d domain.LineDomain) (h history.
 		}
 		d = newD
 		h.Append(history.Step{RuleName: rule.Name(), Domain: newD})
+		narrowed = true
 	}
-	return h
+	return narrowed
 }
 
 func (s *SolverV2) applyProjection(g *game.Game, ref game.LineRef, current bits.Cells, projected bits.Cells) {

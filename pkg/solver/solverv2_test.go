@@ -7,6 +7,7 @@ import (
 
 	"github.com/inahym196/picross-solver/pkg/game"
 	"github.com/inahym196/picross-solver/pkg/solver"
+	"github.com/inahym196/picross-solver/pkg/solver/internal/history"
 )
 
 func TestV2E2E(t *testing.T) {
@@ -89,18 +90,19 @@ func TestV2E2E(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 			game, _ := game.NewGame(tt.rowHints, tt.colHints)
+			h := history.NewHistory()
 
-			n, hs := solver.ApplyMany(game)
+			n := solver.ApplyMany(game, h)
 			t.Logf("applied x%d\n", n)
 			boardStrings := game.Board().Print()
 			if !reflect.DeepEqual(boardStrings, tt.expected) {
 				t.Errorf("expected %v, got %v", tt.expected, boardStrings)
-				if hs == nil {
-					t.Log("logs: nil")
+				if h.IsEmpty() {
+					t.Log("history: nil")
 					t.SkipNow()
 				}
 				t.Log("logs: ")
-				for _, h := range hs.All() {
+				for _, h := range h.All() {
 					t.Logf("  %+v\n", h)
 				}
 			}
@@ -114,9 +116,10 @@ func BenchmarkV2E2E(b *testing.B) {
 	colHints := ParseHints("1-8-2 1-1-4-1-1 1-3-1 2-4-3-1 1-1-3-1 4-1 1-2-3-1 1-5-1 2-1 3-6-1 6-2 3-3-1 1-1-2 2-4-1-1 1-1-5-2")
 	solver := solver.NewSolverV2()
 	game, _ := game.NewGame(rowHints, colHints)
+	h := history.NewHistory()
 
 	for b.Loop() {
-		solver.ApplyMany(game)
+		solver.ApplyMany(game, h)
 	}
 
 }
