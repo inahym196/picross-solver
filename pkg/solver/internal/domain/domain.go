@@ -42,18 +42,25 @@ func (ld LineDomain) Equals(other LineDomain) bool {
 	return ld.lineLen == other.lineLen && ld.runs.Equals(other.runs)
 }
 
-func (ld LineDomain) Project() bits.Cells {
+func (ld LineDomain) Project() (bits.Cells, error) {
 
 	if count := ld.runs.Count(); count == 1 {
 		run, _ := ld.runs.At(0)
 		switch run.Len {
 		case 0:
-			return bits.NewCellsWithWhiteMasked(ld.lineLen)
+			return bits.NewCellsWithWhiteMasked(ld.lineLen), nil
 		case count:
-			return bits.NewCellsWithBlackMasked(ld.lineLen)
+			return bits.NewCellsWithBlackMasked(ld.lineLen), nil
 		}
 	}
-	return bits.NewCells(ld.lineLen).MarkedBlacks(ld.runs.CoveredMask())
+
+	blacks := ld.runs.CoveredMask()
+	whites := ld.runs.UnCoverableMask(ld.lineLen)
+	c, err := bits.FromMasks(ld.lineLen, blacks, whites)
+	if err != nil {
+		return bits.Cells{}, err
+	}
+	return c, nil
 }
 
 func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {

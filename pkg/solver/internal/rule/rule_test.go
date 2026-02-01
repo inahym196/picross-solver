@@ -35,20 +35,24 @@ func TestAllRuleV2(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%s-case%d", tt.rule.Name(), i), func(t *testing.T) {
-
 			domain, err := tt.domainFunc()
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			got, changed := tt.rule.Narrow(tt.cells, domain)
-			wantChanged := !reflect.DeepEqual(tt.cells, tt.wantCells)
+			gotProject, err := got.Project()
+			if err != nil {
+				t.Fatal(err)
+			}
 
+			wantChanged := !reflect.DeepEqual(tt.cells, tt.wantCells)
 			if wantChanged != changed {
 				t.Errorf("want Changed: %t, got %t", wantChanged, changed)
 			}
-			if tt.wantCells != got.Project() {
-				t.Errorf("expected %v, got %v", tt.wantCells, got.Project())
+
+			if tt.wantCells != gotProject {
+				t.Errorf("expected %v, got %v", tt.wantCells, gotProject)
 			}
 		})
 	}

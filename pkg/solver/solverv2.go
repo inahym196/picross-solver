@@ -39,7 +39,11 @@ func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
 
 		current := bits.FromCells(gl.Cells)
 		if domain.IsDeterministic() {
-			s.applyProjection(g, gl.Ref, current, domain.Project())
+			pj, err := domain.Project()
+			if err != nil {
+				panic(err)
+			}
+			s.applyProjection(g, gl.Ref, current, pj)
 			continue
 		}
 
@@ -48,7 +52,10 @@ func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
 			continue
 		}
 
-		projected := lh.Last().Domain.Project()
+		projected, err := lh.Last().Domain.Project()
+		if err != nil {
+			panic(err)
+		}
 		s.applyProjection(g, gl.Ref, current, projected)
 		h.Merge(lh)
 	}
