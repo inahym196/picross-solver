@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 )
@@ -145,6 +146,48 @@ func NewGame(rowHints, colHints [][]int) (*Game, error) {
 func (g *Game) Width() int { return len(g.colHints) }
 
 func (g *Game) Cells() [][]Cell { return g.board.Cells() }
+
+func (g *Game) Rows() []Line {
+	lines := make([]Line, g.board.height)
+	for i := range g.board.height {
+		ref := LineRef{LineKindRow, i}
+		lines[i] = Line{g.board.Row(i), g.rowHints[i], ref}
+	}
+	return lines
+}
+
+func (g *Game) AllRows() iter.Seq[Line] {
+	return func(yield func(Line) bool) {
+		for i := range g.board.height {
+			ref := LineRef{LineKindRow, i}
+			line := Line{g.board.Row(i), g.rowHints[i], ref}
+			if !yield(line) {
+				return
+			}
+		}
+	}
+}
+
+func (g *Game) Columns() []Line {
+	lines := make([]Line, g.board.width)
+	for i := range g.board.width {
+		ref := LineRef{LineKindColumn, i}
+		lines[i] = Line{g.board.Col(i), g.colHints[i], ref}
+	}
+	return lines
+}
+
+func (g *Game) AllColumns() iter.Seq[Line] {
+	return func(yield func(Line) bool) {
+		for i := range g.board.width {
+			ref := LineRef{LineKindColumn, i}
+			line := Line{g.board.Col(i), g.colHints[i], ref}
+			if !yield(line) {
+				return
+			}
+		}
+	}
+}
 
 func (g *Game) Lines() []Line {
 	lines := make([]Line, g.board.height+g.board.width)

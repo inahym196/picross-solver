@@ -31,32 +31,58 @@ func (s *SolverV2) ApplyMany(g *game.Game) (n int, h *history.History) {
 
 func (s *SolverV2) Apply(g *game.Game) (h *history.History) {
 
-	for _, gl := range g.Lines() {
-		domain, err := domain.NewLineDomain(g.Width(), gl.Hints)
+	for row := range g.AllRows() {
+		d, err := domain.NewLineDomain(g.Width(), row.Hints)
+		if err != nil {
+			panic(err)
+		}
+		current := bits.FromCells(row.Cells)
+		if d.IsDeterministic() {
+			updated, err := d.Project()
+			if err != nil {
+				panic(err)
+			}
+			s.applyProjection(g, row.Ref, current, updated)
+			continue
+		}
+		lh := s.NarrowLine(bits.FromCells(row.Cells), d)
+		if lh.IsEmpty() {
+			continue
+		}
+		updated, err := lh.Last().Domain.Project()
+		if err != nil {
+			panic(err)
+		}
+		s.applyProjection(g, row.Ref, current, updated)
+		h.Merge(lh)
+	}
+
+	for col := range g.AllColumns() {
+		d, err := domain.NewLineDomain(g.Width(), col.Hints)
 		if err != nil {
 			panic(err)
 		}
 
-		current := bits.FromCells(gl.Cells)
-		if domain.IsDeterministic() {
-			pj, err := domain.Project()
+		current := bits.FromCells(col.Cells)
+		if d.IsDeterministic() {
+			pj, err := d.Project()
 			if err != nil {
 				panic(err)
 			}
-			s.applyProjection(g, gl.Ref, current, pj)
+			s.applyProjection(g, col.Ref, current, pj)
 			continue
 		}
 
-		lh := s.NarrowLine(bits.FromCells(gl.Cells), domain)
+		lh := s.NarrowLine(bits.FromCells(col.Cells), d)
 		if lh.IsEmpty() {
 			continue
 		}
 
-		projected, err := lh.Last().Domain.Project()
+		updated, err := lh.Last().Domain.Project()
 		if err != nil {
 			panic(err)
 		}
-		s.applyProjection(g, gl.Ref, current, projected)
+		s.applyProjection(g, col.Ref, current, updated)
 		h.Merge(lh)
 	}
 	return h
