@@ -25,6 +25,14 @@ func (run RunPlacement) CoveredMask() bits.Bits {
 	return mask
 }
 
+func (run RunPlacement) CoverableMask() bits.Bits {
+	var m bits.Bits
+	for i := run.MinStart; i < run.MaxStart+run.Len; i++ {
+		m |= bits.Bits(1 << i)
+	}
+	return m
+}
+
 func (run RunPlacement) CoversLeft(i int) bool {
 	return run.MinStart <= i && i < run.MinStart+run.Len
 }
@@ -84,6 +92,18 @@ func (runs RunPlacements) CoveredMask() bits.Bits {
 		mask |= runs.runs[i].CoveredMask()
 	}
 	return mask
+}
+
+func (runs RunPlacements) CoverableMask() bits.Bits {
+	var m bits.Bits
+	for _, run := range runs.runs {
+		m |= run.CoverableMask()
+	}
+	return m
+}
+
+func (runs RunPlacements) UnCoverableMask(lineLen int) bits.Bits {
+	return bits.Bits(1<<lineLen-1) &^ runs.CoverableMask()
 }
 
 func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool) {
