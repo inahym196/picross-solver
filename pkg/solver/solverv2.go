@@ -85,10 +85,10 @@ func (s *SolverV2) applyProjection(g *game.Game, ref game.LineRef, current bits.
 	if updated.Equals(current) {
 		return
 	}
-	s.MarkCells(g, ref, updated)
+	s.markCells(g, ref, updated)
 }
 
-func (s *SolverV2) MarkCells(g *game.Game, ref game.LineRef, cells bits.Cells) {
+func (s *SolverV2) markCells(g *game.Game, ref game.LineRef, cells bits.Cells) {
 
 	processBits := func(bits uint32, cell game.Cell) {
 		for bits != 0 {
