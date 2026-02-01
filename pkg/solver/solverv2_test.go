@@ -103,7 +103,7 @@ func TestV2E2E(t *testing.T) {
 				}
 				t.Log("logs: ")
 				for _, h := range h.All() {
-					t.Logf("  %+v\n", h)
+					t.Logf("  %v\n", h)
 				}
 			}
 		})

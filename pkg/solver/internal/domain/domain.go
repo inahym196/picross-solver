@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+
 	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
 )
 
@@ -35,6 +37,9 @@ func NewLineDomain(lineLen int, hints []int) (LineDomain, error) {
 	return LineDomain{lineLen, runs}, nil
 }
 
+func (ld LineDomain) String() string {
+	return fmt.Sprintf("{lineLen:%d runs:%v}", ld.lineLen, ld.runs)
+}
 func (ld LineDomain) LineLen() int                   { return ld.lineLen }
 func (ld LineDomain) RunsCount() int                 { return ld.runs.Count() }
 func (ld LineDomain) Run(i int) (RunPlacement, bool) { return ld.runs.At(i) }

@@ -12,6 +12,10 @@ type RunPlacement struct {
 	Len      int
 }
 
+func (runs RunPlacement) String() string {
+	return fmt.Sprintf("{Len:%d Start:%d-%d}", runs.Len, runs.MinStart, runs.MaxStart)
+}
+
 func (run RunPlacement) CoveredMask() bits.Bits {
 	end := run.MinStart + run.Len
 	if run.MaxStart >= end {
@@ -68,6 +72,9 @@ type RunPlacements struct {
 	runs  [MaxRuns]RunPlacement
 }
 
+func (runs RunPlacements) String() string {
+	return fmt.Sprintf("%+v", runs.runs[:runs.count])
+}
 func (runs RunPlacements) Equals(other RunPlacements) bool { return runs == other }
 func (runs RunPlacements) Count() int                      { return runs.count }
 func (runs RunPlacements) At(i int) (RunPlacement, bool) {
