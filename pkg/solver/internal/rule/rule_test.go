@@ -29,7 +29,7 @@ func TestAllRuleV2(t *testing.T) {
 			rule.EdgeExpansionRule{},
 			bits.FromCells([]game.Cell{U, B, U, U, U, U}),
 			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{3}) },
-			bits.FromCells([]game.Cell{U, B, B, U, U, U}),
+			bits.FromCells([]game.Cell{U, B, B, U, W, W}),
 		},
 	}
 
