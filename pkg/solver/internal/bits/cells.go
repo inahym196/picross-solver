@@ -60,6 +60,10 @@ func NewCellsWithBlackMasked(len int) Cells {
 	return Cells{len, 1<<len - 1, 0}
 }
 
+func (c Cells) String() string {
+	return fmt.Sprintf("{Len:%d, Blacks:b%b, Whites:b%b}", c.Len, c.Blacks, c.Whites)
+}
+
 func (c Cells) ToCells() []game.Cell {
 	cells := make([]game.Cell, c.Len)
 	for i := range c.Len {
