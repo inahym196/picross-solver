@@ -18,7 +18,7 @@ func (l testLogger) Logf(format string, args ...any) {
 	l.t.Logf(format, args...)
 }
 
-func (l testLogger) Verbose() bool { return true }
+func (l testLogger) Verbose() bool { return false }
 
 func TestV2E2E(t *testing.T) {
 	tests := []struct {

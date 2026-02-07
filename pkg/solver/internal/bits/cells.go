@@ -80,7 +80,17 @@ func (c Cells) ToCells() []game.Cell {
 	return cells
 }
 
-func (c Cells) Equals(another Cells) bool { return c == another }
+func (c Cells) Equals(other Cells) bool { return c == other }
+
+func (c Cells) ExtraCellsFrom(other Cells) Cells {
+	return Cells{
+		c.Len,
+		c.Blacks &^ other.Blacks,
+		c.Whites &^ other.Whites,
+	}
+}
+
+func (c Cells) IsEmpty() bool { return c.Blacks == 0 && c.Whites == 0 }
 
 //func (c Cells) Mask() Bits { return Bits(1<<c.Len - 1) }
 

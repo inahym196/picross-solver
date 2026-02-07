@@ -47,17 +47,43 @@ func NewSolverV2(opts ...Option) *SolverV2 {
 }
 
 func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
-	s.Apply(g, h)
-	return 1
-}
+	for row := range g.AllRows() {
+		diffs := s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells))
+		if diffs.IsEmpty() {
+			continue
+		}
+		s.logger.Logf("init projected: %v %v", row, diffs)
+		s.markCells(g, row.Ref, diffs)
+	}
 
-func (s *SolverV2) Apply(g *game.Game, h *history.History) {
+	for col := range g.AllColumns() {
+		diffs := s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells))
+		if diffs.IsEmpty() {
+			continue
+		}
+		s.logger.Logf("init projected: %v %v", col, diffs)
+		s.markCells(g, col.Ref, diffs)
+	}
+
 	for row := range g.AllRows() {
 		s.applyLine(g, row, h)
 	}
 	for col := range g.AllColumns() {
 		s.applyLine(g, col, h)
 	}
+	return 1
+}
+
+func (s *SolverV2) projectLine(l game.Line) bits.Cells {
+	d, err := domain.NewLineDomain(l.Len(), l.Hints)
+	if err != nil {
+		panic(err)
+	}
+	projected, err := d.Project()
+	if err != nil {
+		panic(err)
+	}
+	return projected
 }
 
 func (s *SolverV2) applyLine(g *game.Game, l game.Line, h *history.History) {
@@ -67,22 +93,8 @@ func (s *SolverV2) applyLine(g *game.Game, l game.Line, h *history.History) {
 		panic(err)
 	}
 	current := bits.FromCells(l.Cells)
-	if d.IsDeterministic() {
-		updated, err := d.Project()
-		if err != nil {
-			panic(err)
-		}
-		changed := s.markCells(g, l.Ref, updated)
-		if changed {
-			s.logger.Logf("deterministic cells updated: %v -> %v", current, updated)
-		}
-		return
-	}
 	lastD, narrowed := s.narrowLine(current, d, h)
-	if narrowed == false {
-		if s.logger.Verbose() {
-			s.logger.Logf("no any change. next line")
-		}
+	if !narrowed {
 		return
 	}
 	updated, err := lastD.Project()

@@ -131,6 +131,8 @@ type Line struct {
 	Ref   LineRef
 }
 
+func (l Line) Len() int { return len(l.Cells) }
+
 type Game struct {
 	board    *Board
 	rowHints [][]int
