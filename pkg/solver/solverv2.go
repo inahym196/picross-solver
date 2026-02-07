@@ -34,14 +34,16 @@ func WithLogger(l Logger) Option {
 	}
 }
 
+type LineRefQueue = queue.Queue[game.LineRef]
+
 type SolverV2 struct {
 	rules  []RuleV2
 	logger Logger
-	q      *queue.LineRefQueue
+	q      *LineRefQueue
 }
 
 func NewSolverV2(opts ...Option) *SolverV2 {
-	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}, &queue.LineRefQueue{}}
+	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}, &LineRefQueue{}}
 	for _, opt := range opts {
 		opt(s)
 	}

@@ -1,15 +1,13 @@
 package queue
 
-import "github.com/inahym196/picross-solver/pkg/game"
-
-type LineRefQueue struct {
-	q   []game.LineRef
-	inQ map[game.LineRef]struct{}
+type Queue[T comparable] struct {
+	q   []T
+	inQ map[T]struct{}
 }
 
-func (rq *LineRefQueue) Push(ref game.LineRef) {
+func (rq *Queue[T]) Push(ref T) {
 	if rq.inQ == nil {
-		rq.inQ = make(map[game.LineRef]struct{})
+		rq.inQ = make(map[T]struct{})
 	}
 	if _, ok := rq.inQ[ref]; ok {
 		return
@@ -18,9 +16,10 @@ func (rq *LineRefQueue) Push(ref game.LineRef) {
 	rq.inQ[ref] = struct{}{}
 }
 
-func (rq *LineRefQueue) Pop() (game.LineRef, bool) {
+func (rq *Queue[T]) Pop() (T, bool) {
 	if len(rq.q) == 0 {
-		return game.LineRef{}, false
+		var zero T
+		return zero, false
 	}
 	ref := rq.q[0]
 	rq.q = rq.q[1:]
