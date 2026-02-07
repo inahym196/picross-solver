@@ -46,23 +46,37 @@ func NewSolverV2(opts ...Option) *SolverV2 {
 	return s
 }
 
+type LineDiff struct {
+	Ref   game.LineRef
+	Hint  []int
+	Cells bits.Cells
+}
+
 func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
+	diffs := make([]LineDiff, 0, g.Width()+g.Height())
+
 	for row := range g.AllRows() {
-		diffs := s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells))
-		if diffs.IsEmpty() {
-			continue
-		}
-		s.logger.Logf("init projected: %v %v", row, diffs)
-		s.markCells(g, row.Ref, diffs)
+		diffs = append(diffs, LineDiff{
+			row.Ref,
+			row.Hints,
+			s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells)),
+		})
 	}
 
 	for col := range g.AllColumns() {
-		diffs := s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells))
-		if diffs.IsEmpty() {
+		diffs = append(diffs, LineDiff{
+			col.Ref,
+			col.Hints,
+			s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells)),
+		})
+	}
+
+	for _, diff := range diffs {
+		if diff.Cells.IsEmpty() {
 			continue
 		}
-		s.logger.Logf("init projected: %v %v", col, diffs)
-		s.markCells(g, col.Ref, diffs)
+		s.logger.Logf("projected: %v", diff)
+		s.markCells(g, diff.Ref, diff.Cells)
 	}
 
 	for row := range g.AllRows() {
