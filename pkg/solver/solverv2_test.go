@@ -102,8 +102,7 @@ func TestV2E2E(t *testing.T) {
 			game, _ := game.NewGame(tt.rowHints, tt.colHints)
 			h := history.NewHistory()
 
-			n := solver.ApplyMany(game, h)
-			t.Logf("applied x%d\n", n)
+			solver.Solve(game, h)
 			boardStrings := game.Board().Print()
 			if !reflect.DeepEqual(boardStrings, tt.expected) {
 				t.Errorf("expected %v, got %v", tt.expected, boardStrings)
@@ -129,7 +128,7 @@ func BenchmarkV2E2E(b *testing.B) {
 	h := history.NewHistory()
 
 	for b.Loop() {
-		solver.ApplyMany(game, h)
+		solver.Solve(game, h)
 	}
 
 }

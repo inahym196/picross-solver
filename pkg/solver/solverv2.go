@@ -47,7 +47,7 @@ func NewSolverV2(opts ...Option) *SolverV2 {
 	return s
 }
 
-func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
+func (s *SolverV2) Solve(g *game.Game, h *history.History) {
 	diffs := s.initProject(g)
 
 	for _, diff := range diffs {
@@ -88,8 +88,6 @@ func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
 			}
 		}
 	}
-
-	return 1
 }
 
 type LineDiff struct {
