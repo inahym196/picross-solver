@@ -144,13 +144,7 @@ func (s *SolverV2) markCells(g *game.Game, ref game.LineRef, cells bits.Cells) b
 	processBits := func(bits uint32, cell game.Cell) {
 		for bits != 0 {
 			i := math_bits.TrailingZeros32(bits)
-			var row, col int
-			if ref.Kind == game.LineKindRow {
-				row, col = ref.Index, i
-			} else {
-				row, col = i, ref.Index
-			}
-			changed, err := g.Mark(row, col, cell)
+			changed, err := g.MarkByRef(ref, i, cell)
 			if err != nil {
 				panic(err)
 			}

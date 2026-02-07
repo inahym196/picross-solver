@@ -234,3 +234,14 @@ func (g *Game) Mark(row, col int, cell Cell) (bool, error) {
 	// TODO: Hintとの整合性処理はここに入れる
 	return g.board.Mark(row, col, cell)
 }
+
+func (g *Game) MarkByRef(ref LineRef, i int, cell Cell) (bool, error) {
+	switch ref.Kind {
+	case LineKindRow:
+		return g.board.Mark(ref.Index, i, cell)
+	case LineKindColumn:
+		return g.board.Mark(i, ref.Index, cell)
+	default:
+		return false, fmt.Errorf("invalid LineKind")
+	}
+}
