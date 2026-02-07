@@ -133,6 +133,16 @@ type Line struct {
 
 func (l Line) Len() int { return len(l.Cells) }
 
+// TODO: hintとの整合性もそのうち入れたい。今はまだその時じゃない
+func (l Line) IsFilled() bool {
+	for _, c := range l.Cells {
+		if c == CellUndetermined {
+			return false
+		}
+	}
+	return true
+}
+
 func (l Line) String() string {
 	return fmt.Sprintf("{%s %v %v}", l.Ref, l.Hints, l.Cells)
 }

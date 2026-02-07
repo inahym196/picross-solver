@@ -68,6 +68,9 @@ func (s *SolverV2) Solve(g *game.Game, h *history.History) {
 			break
 		}
 		line := g.Line(ref)
+		if line.IsFilled() {
+			continue
+		}
 		s.logger.Logf("start line:%v", line)
 		d, err := domain.NewLineDomain(line.Len(), line.Hints)
 		if err != nil {
