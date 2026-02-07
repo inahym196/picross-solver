@@ -36,10 +36,11 @@ func WithLogger(l Logger) Option {
 type SolverV2 struct {
 	rules  []RuleV2
 	logger Logger
+	q      *LineRefQueue
 }
 
 func NewSolverV2(opts ...Option) *SolverV2 {
-	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}}
+	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}, &LineRefQueue{}}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -53,14 +54,41 @@ func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
 		before := g.Line(diff.Ref)
 		s.markCells(g, diff.Ref, diff.Cells)
 		s.logger.Logf("projected: %v %v -> %v", before, diff.Cells, g.Line(diff.Ref).Cells)
+		for _, ref := range diff.RefsInDiff() {
+			s.q.Push(ref)
+		}
 	}
 
-	for row := range g.AllRows() {
-		s.applyLine(g, row, h)
+	for {
+		ref, ok := s.q.Pop()
+		if !ok {
+			break
+		}
+		line := g.Line(ref)
+		s.logger.Logf("start line:%v", line)
+		d, err := domain.NewLineDomain(line.Len(), line.Hints)
+		if err != nil {
+			panic(err)
+		}
+		current := bits.FromCells(line.Cells)
+		last, narrowed := s.narrowLine(current, d, h)
+		if !narrowed {
+			continue
+		}
+		projected, err := last.Project()
+		if err != nil {
+			panic(err)
+		}
+		diff := NewLineDiff(ref, current, projected)
+		if !diff.IsEmpty() {
+			s.markCells(g, ref, diff.Cells)
+			s.logger.Logf("projected: %v %v -> %v", current, diff.Cells, g.Line(ref).Cells)
+			for _, next := range diff.RefsInDiff() {
+				s.q.Push(next)
+			}
+		}
 	}
-	for col := range g.AllColumns() {
-		s.applyLine(g, col, h)
-	}
+
 	return 1
 }
 
@@ -69,20 +97,42 @@ type LineDiff struct {
 	Cells bits.Cells
 }
 
+func NewLineDiff(ref game.LineRef, before bits.Cells, after bits.Cells) LineDiff {
+	return LineDiff{ref, after.ExtraCellsFrom(before)}
+}
+
+func (diff LineDiff) IsEmpty() bool { return diff.Cells.IsEmpty() }
+
+func (diff LineDiff) RefsInDiff() []game.LineRef {
+	cells := diff.Cells
+	if cells.IsEmpty() {
+		return nil
+	}
+
+	mask := uint32(cells.Blacks | cells.Whites)
+	refs := make([]game.LineRef, 0, math_bits.OnesCount32(mask))
+	for mask != 0 {
+		i := math_bits.TrailingZeros32(mask)
+		refs = append(refs, game.LineRef{Kind: diff.Ref.Kind, Index: i})
+		mask &= mask - 1
+	}
+	return refs
+}
+
 func (s *SolverV2) initProject(g *game.Game) []LineDiff {
 	diffs := make([]LineDiff, 0, g.Width()+g.Height())
 
 	for row := range g.AllRows() {
-		diffCell := s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells))
-		if !diffCell.IsEmpty() {
-			diffs = append(diffs, LineDiff{row.Ref, diffCell})
+		diff := NewLineDiff(row.Ref, bits.FromCells(row.Cells), s.projectLine(row))
+		if !diff.IsEmpty() {
+			diffs = append(diffs, diff)
 		}
 	}
 
 	for col := range g.AllColumns() {
-		diffCell := s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells))
-		if !diffCell.IsEmpty() {
-			diffs = append(diffs, LineDiff{col.Ref, diffCell})
+		diff := NewLineDiff(col.Ref, bits.FromCells(col.Cells), s.projectLine(col))
+		if !diff.IsEmpty() {
+			diffs = append(diffs, diff)
 		}
 	}
 	return diffs
@@ -98,27 +148,6 @@ func (s *SolverV2) projectLine(l game.Line) bits.Cells {
 		panic(err)
 	}
 	return projected
-}
-
-func (s *SolverV2) applyLine(g *game.Game, l game.Line, h *history.History) {
-	s.logger.Logf("start line:%v", l)
-	d, err := domain.NewLineDomain(g.Width(), l.Hints)
-	if err != nil {
-		panic(err)
-	}
-	current := bits.FromCells(l.Cells)
-	lastD, narrowed := s.narrowLine(current, d, h)
-	if !narrowed {
-		return
-	}
-	updated, err := lastD.Project()
-	if err != nil {
-		panic(err)
-	}
-	changed := s.markCells(g, l.Ref, updated)
-	if changed {
-		s.logger.Logf("cells updated: -> %v", updated)
-	}
 }
 
 func (s *SolverV2) narrowLine(cells bits.Cells, d domain.LineDomain, h *history.History) (last domain.LineDomain, narrowed bool) {
