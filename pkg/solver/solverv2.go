@@ -53,6 +53,26 @@ type LineDiff struct {
 }
 
 func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
+	diffs := s.initProject(g)
+
+	for _, diff := range diffs {
+		if diff.Cells.IsEmpty() {
+			continue
+		}
+		s.logger.Logf("projected: %v", diff)
+		s.markCells(g, diff.Ref, diff.Cells)
+	}
+
+	for row := range g.AllRows() {
+		s.applyLine(g, row, h)
+	}
+	for col := range g.AllColumns() {
+		s.applyLine(g, col, h)
+	}
+	return 1
+}
+
+func (s *SolverV2) initProject(g *game.Game) []LineDiff {
 	diffs := make([]LineDiff, 0, g.Width()+g.Height())
 
 	for row := range g.AllRows() {
@@ -70,22 +90,7 @@ func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
 			s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells)),
 		})
 	}
-
-	for _, diff := range diffs {
-		if diff.Cells.IsEmpty() {
-			continue
-		}
-		s.logger.Logf("projected: %v", diff)
-		s.markCells(g, diff.Ref, diff.Cells)
-	}
-
-	for row := range g.AllRows() {
-		s.applyLine(g, row, h)
-	}
-	for col := range g.AllColumns() {
-		s.applyLine(g, col, h)
-	}
-	return 1
+	return diffs
 }
 
 func (s *SolverV2) projectLine(l game.Line) bits.Cells {
