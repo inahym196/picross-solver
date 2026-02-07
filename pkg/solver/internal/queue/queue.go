@@ -1,4 +1,4 @@
-package solver
+package queue
 
 import "github.com/inahym196/picross-solver/pkg/game"
 

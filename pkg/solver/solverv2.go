@@ -7,6 +7,7 @@ import (
 	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/domain"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/history"
+	"github.com/inahym196/picross-solver/pkg/solver/internal/queue"
 	"github.com/inahym196/picross-solver/pkg/solver/internal/rule"
 )
 
@@ -36,11 +37,11 @@ func WithLogger(l Logger) Option {
 type SolverV2 struct {
 	rules  []RuleV2
 	logger Logger
-	q      *LineRefQueue
+	q      *queue.LineRefQueue
 }
 
 func NewSolverV2(opts ...Option) *SolverV2 {
-	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}, &LineRefQueue{}}
+	s := &SolverV2{[]RuleV2{rule.EdgeExpansionRule{}}, nopLogger{}, &queue.LineRefQueue{}}
 	for _, opt := range opts {
 		opt(s)
 	}
