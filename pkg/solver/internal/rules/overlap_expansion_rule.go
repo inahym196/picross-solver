@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // 端が未確定なら黒をヒント分拡張する
@@ -34,7 +33,7 @@ func (r OverlapExpansionRule) expand(cells []game.Cell, hint int, indexer func(i
 	return true
 }
 
-func (r OverlapExpansionRule) Deduce(line line.Line) []game.Cell {
+func (r OverlapExpansionRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	trim := trimWhite(cells)
 

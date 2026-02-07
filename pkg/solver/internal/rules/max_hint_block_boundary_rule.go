@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // 最大 hint 長に達しているブロックの前後を白確定
@@ -14,7 +13,7 @@ func (r MaxHintBlockBoundaryRule) Name() string {
 	return "BlockSatisfiedRule"
 }
 
-func (r MaxHintBlockBoundaryRule) Deduce(line line.Line) []game.Cell {
+func (r MaxHintBlockBoundaryRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	hint := slices.Max(line.Hints)
 	if hint == 0 {

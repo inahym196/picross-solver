@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // 最小 hint が収まらない区間を白確定
@@ -14,7 +13,7 @@ func (r PruneImpossibleSegmentRule) Name() string {
 	return "PruneImpossibleSegmentRule"
 }
 
-func (r PruneImpossibleSegmentRule) Deduce(line line.Line) []game.Cell {
+func (r PruneImpossibleSegmentRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 
 	hint := slices.Min(line.Hints)

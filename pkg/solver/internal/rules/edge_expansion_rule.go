@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/inahym196/picross-solver/pkg/game"
-	"github.com/inahym196/picross-solver/pkg/solver/internal/line"
 )
 
 // 端に黒が確定した場合、ヒントサイズ分伸ばせる
@@ -30,7 +29,7 @@ func (r EdgeExpansionRule) expand(cells []game.Cell, hint int, indexer func(i, n
 	return true
 }
 
-func (r EdgeExpansionRule) Deduce(line line.Line) []game.Cell {
+func (r EdgeExpansionRule) Deduce(line game.Line) []game.Cell {
 	cells := slices.Clone(line.Cells)
 	trim := trimWhite(cells)
 
