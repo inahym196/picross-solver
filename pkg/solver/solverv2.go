@@ -46,21 +46,13 @@ func NewSolverV2(opts ...Option) *SolverV2 {
 	return s
 }
 
-type LineDiff struct {
-	Ref   game.LineRef
-	Hint  []int
-	Cells bits.Cells
-}
-
 func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
 	diffs := s.initProject(g)
 
 	for _, diff := range diffs {
-		if diff.Cells.IsEmpty() {
-			continue
-		}
-		s.logger.Logf("projected: %v", diff)
+		before := g.Line(diff.Ref)
 		s.markCells(g, diff.Ref, diff.Cells)
+		s.logger.Logf("projected: %v %v -> %v", before, diff.Cells, g.Line(diff.Ref).Cells)
 	}
 
 	for row := range g.AllRows() {
@@ -72,23 +64,26 @@ func (s *SolverV2) ApplyMany(g *game.Game, h *history.History) (n int) {
 	return 1
 }
 
+type LineDiff struct {
+	Ref   game.LineRef
+	Cells bits.Cells
+}
+
 func (s *SolverV2) initProject(g *game.Game) []LineDiff {
 	diffs := make([]LineDiff, 0, g.Width()+g.Height())
 
 	for row := range g.AllRows() {
-		diffs = append(diffs, LineDiff{
-			row.Ref,
-			row.Hints,
-			s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells)),
-		})
+		diffCell := s.projectLine(row).ExtraCellsFrom(bits.FromCells(row.Cells))
+		if !diffCell.IsEmpty() {
+			diffs = append(diffs, LineDiff{row.Ref, diffCell})
+		}
 	}
 
 	for col := range g.AllColumns() {
-		diffs = append(diffs, LineDiff{
-			col.Ref,
-			col.Hints,
-			s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells)),
-		})
+		diffCell := s.projectLine(col).ExtraCellsFrom(bits.FromCells(col.Cells))
+		if !diffCell.IsEmpty() {
+			diffs = append(diffs, LineDiff{col.Ref, diffCell})
+		}
 	}
 	return diffs
 }

@@ -133,6 +133,10 @@ type Line struct {
 
 func (l Line) Len() int { return len(l.Cells) }
 
+func (l Line) String() string {
+	return fmt.Sprintf("{%s %v %v}", l.Ref, l.Hints, l.Cells)
+}
+
 type Game struct {
 	board    *Board
 	rowHints [][]int
@@ -209,6 +213,17 @@ func (g *Game) Lines() []Line {
 		lines[g.board.height+i] = Line{g.board.Col(i), g.colHints[i], ref}
 	}
 	return lines
+}
+
+func (g *Game) Line(ref LineRef) Line {
+	switch ref.Kind {
+	case LineKindRow:
+		return Line{g.board.Row(ref.Index), g.rowHints[ref.Index], ref}
+	case LineKindColumn:
+		return Line{g.board.Col(ref.Index), g.colHints[ref.Index], ref}
+	default:
+		panic("invalid LineRef")
+	}
 }
 
 func (g *Game) Board() *Board {
