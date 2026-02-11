@@ -31,6 +31,12 @@ func TestAllRuleV2(t *testing.T) {
 			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{3}) },
 			bits.FromCells([]game.Cell{U, B, B, U, W, W}),
 		},
+		{
+			rule.ExactMatchRule{},
+			bits.FromCells([]game.Cell{U, B, B, U, B, U}),
+			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{2, 1}) },
+			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
+		},
 	}
 
 	for i, tt := range tests {
