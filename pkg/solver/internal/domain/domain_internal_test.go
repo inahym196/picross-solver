@@ -16,10 +16,7 @@ func TestNewLineDomain(t *testing.T) {
 	}
 
 	for i, wantRun := range want {
-		run, ok := d.runs.At(i)
-		if !ok {
-			t.Fatalf("out of range run[%d]", i)
-		}
+		run := d.runs.At(i)
 		if run != wantRun {
 			t.Errorf("run: want %+v, got %+v", wantRun, run)
 		}

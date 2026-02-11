@@ -9,14 +9,15 @@ type EdgeExpansionRule struct{}
 
 func (r EdgeExpansionRule) Name() string { return "EdgeExpansionRule" }
 
-func (r EdgeExpansionRule) Narrow(cells bits.Cells, domain domain.LineDomain) (domain.LineDomain, bool) {
-	if domain.RunsCount() < 1 {
-		return domain, false
+func (r EdgeExpansionRule) Narrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
+	if d.RunsCount() < 1 {
+		return d, false
 	}
-	mostLeftBlack := cells.MostLeftBlack()
-	run, _ := domain.Run(0)
+	mostLeftBlack := cells.Blacks.LeftZeros()
+	run := d.Run(0)
 	if !run.CoversLeft(mostLeftBlack) {
-		return domain, false
+		return d, false
 	}
-	return domain.NarrowedRunMax(0, mostLeftBlack)
+	run.MaxStart = mostLeftBlack
+	return d.Narrowed(0, run)
 }

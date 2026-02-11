@@ -77,11 +77,18 @@ func (runs RunPlacements) String() string {
 }
 func (runs RunPlacements) Equals(other RunPlacements) bool { return runs == other }
 func (runs RunPlacements) Count() int                      { return runs.count }
-func (runs RunPlacements) At(i int) (RunPlacement, bool) {
+func (runs RunPlacements) At(i int) RunPlacement {
 	if !runs.inBounds(i) {
-		return RunPlacement{}, false
+		panic("out of range")
 	}
-	return runs.runs[i], true
+	return runs.runs[i]
+}
+func (runs RunPlacements) Replaced(i int, newRun RunPlacement) (newRuns RunPlacements, changed bool) {
+	if run := runs.At(i); run.Equals(newRun) {
+		return runs, false
+	}
+	runs.runs[i] = newRun
+	return runs, true
 }
 
 func (runs RunPlacements) Append(run RunPlacement) (RunPlacements, error) {
@@ -111,14 +118,6 @@ func (runs RunPlacements) CoverableMask() bits.Bits {
 
 func (runs RunPlacements) UnCoverableMask(lineLen int) bits.Bits {
 	return bits.Bits(1<<lineLen-1) &^ runs.CoverableMask()
-}
-
-func (runs RunPlacements) Replaced(i int, run RunPlacement) (RunPlacements, bool) {
-	if !runs.inBounds(i) {
-		return runs, false
-	}
-	runs.runs[i] = run
-	return runs, true
 }
 
 func (runs RunPlacements) IsExactFit() bool {

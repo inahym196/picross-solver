@@ -11,6 +11,10 @@ type Bits uint32
 
 func (b Bits) Equals(other Bits) bool { return b == other }
 
+func (b Bits) OnesCount() int { return bits.OnesCount32(uint32(b)) }
+
+func (b Bits) LeftZeros() int { return bits.TrailingZeros32(uint32(b)) }
+
 // ValueObject
 type Cells struct {
 	Len    int
@@ -118,10 +122,6 @@ func (c Cells) MarkedWhites(b Bits) (Cells, error) {
 	}
 
 	return Cells{c.Len, c.Blacks, c.Whites | b}, nil
-}
-
-func (c Cells) MostLeftBlack() int {
-	return bits.TrailingZeros32(uint32(c.Blacks))
 }
 
 func (c Cells) Merged(other Cells) (Cells, bool) {
