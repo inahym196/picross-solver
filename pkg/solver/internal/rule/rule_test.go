@@ -32,7 +32,13 @@ func TestAllRuleV2(t *testing.T) {
 			bits.FromCells([]game.Cell{U, B, B, U, W, W}),
 		},
 		{
-			rule.ExactMatchRule{},
+			rule.ExactMatchBlackRule{},
+			bits.FromCells([]game.Cell{W, U, U, W, U, W}),
+			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{2, 1}) },
+			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
+		},
+		{
+			rule.ExactMatchWhiteRule{},
 			bits.FromCells([]game.Cell{U, B, B, U, B, U}),
 			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{2, 1}) },
 			bits.FromCells([]game.Cell{W, B, B, W, B, W}),

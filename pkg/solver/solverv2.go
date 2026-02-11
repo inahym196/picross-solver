@@ -45,7 +45,8 @@ type SolverV2 struct {
 func NewSolverV2(opts ...Option) *SolverV2 {
 	s := &SolverV2{[]RuleV2{
 		rule.EdgeExpansionRule{},
-		rule.ExactMatchRule{},
+		rule.ExactMatchWhiteRule{},
+		rule.ExactMatchBlackRule{},
 	}, nopLogger{}, &LineRefQueue{}}
 	for _, opt := range opts {
 		opt(s)
