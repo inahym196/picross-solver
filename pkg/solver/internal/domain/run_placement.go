@@ -91,6 +91,26 @@ func (runs RunPlacements) Replaced(i int, newRun RunPlacement) (newRuns RunPlace
 	return runs, true
 }
 
+func (runs RunPlacements) FixedByMask(mask bits.Bits) (RunPlacements, bool) {
+	cursor := 0
+	changed := false
+
+	for i := range runs.count {
+		run := runs.runs[i]
+		start := cursor + (mask >> cursor).LeftZeros()
+		if start < run.MinStart || run.MaxStart < start {
+			return runs, false
+		}
+
+		if run.MinStart != start || run.MaxStart != start {
+			runs.runs[i] = run.Fixed(start)
+			changed = true
+		}
+		cursor = start + run.Len
+	}
+	return runs, changed
+}
+
 func (runs RunPlacements) Append(run RunPlacement) (RunPlacements, error) {
 	if runs.count >= MaxRuns {
 		return runs, fmt.Errorf("capacity over. maxRuns: %d", MaxRuns)

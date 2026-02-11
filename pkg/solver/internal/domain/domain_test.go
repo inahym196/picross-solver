@@ -88,3 +88,36 @@ func TestLineDomain_Project_Fits(t *testing.T) {
 		})
 	}
 }
+
+func TestLineDomain_FixedByMask(t *testing.T) {
+	d := mustNewLineDomain(6, []int{2, 1})
+	mask := str2bit("011010") // starts: 1, 4
+
+	got, changed := d.FixedByMask(mask)
+	if !changed {
+		t.Fatal("want changed")
+	}
+
+	run0 := got.Run(0)
+	if run0.MinStart != 1 || run0.MaxStart != 1 {
+		t.Fatalf("run0: want fixed at 1, got %+v", run0)
+	}
+
+	run1 := got.Run(1)
+	if run1.MinStart != 4 || run1.MaxStart != 4 {
+		t.Fatalf("run1: want fixed at 4, got %+v", run1)
+	}
+}
+
+func TestLineDomain_FixedByMask_Invalid(t *testing.T) {
+	d := mustNewLineDomain(6, []int{2, 1})
+	mask := str2bit("000011") // starts: 0, 0 (2nd run invalid)
+
+	got, changed := d.FixedByMask(mask)
+	if changed {
+		t.Fatal("want unchanged on invalid mask")
+	}
+	if !got.Equals(d) {
+		t.Fatalf("domain should be unchanged: want %+v, got %+v", d, got)
+	}
+}

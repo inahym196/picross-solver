@@ -25,7 +25,7 @@ func (r ExactMatchBlackRule) Narrow(cells bits.Cells, d domain.LineDomain) (doma
 	if hints != nonWhites.OnesCount() {
 		return d, false
 	}
-	return fixRuns(d, nonWhites)
+	return d.FixedByMask(nonWhites)
 }
 
 func (r ExactMatchWhiteRule) Narrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
@@ -36,28 +36,5 @@ func (r ExactMatchWhiteRule) Narrow(cells bits.Cells, d domain.LineDomain) (doma
 	if hints != cells.Blacks.OnesCount() {
 		return d, false
 	}
-	return fixRuns(d, cells.Blacks)
-}
-
-func fixRuns(d domain.LineDomain, fixed bits.Bits) (domain.LineDomain, bool) {
-	fixedStarts := make([]int, d.RunsCount())
-	cursor := 0
-	for i, run := range d.AllRuns() {
-		start := cursor + (fixed >> cursor).LeftZeros()
-		if start < run.MinStart || run.MaxStart < start {
-			return d, false
-		}
-		fixedStarts[i] = start
-		cursor = start + run.Len
-	}
-
-	changed := false
-	for i, run := range d.AllRuns() {
-		run = run.Fixed(fixedStarts[i])
-
-		var narrowed bool
-		d, narrowed = d.Narrowed(i, run)
-		changed = changed || narrowed
-	}
-	return d, changed
+	return d.FixedByMask(cells.Blacks)
 }

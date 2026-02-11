@@ -78,6 +78,15 @@ func (ld LineDomain) Narrowed(i int, run RunPlacement) (LineDomain, bool) {
 	return ld, true
 }
 
+func (ld LineDomain) FixedByMask(mask bits.Bits) (LineDomain, bool) {
+	newRuns, changed := ld.runs.FixedByMask(mask)
+	if !changed {
+		return ld, false
+	}
+	ld.runs = newRuns
+	return ld, true
+}
+
 func (ld LineDomain) IsDeterministic() bool {
 	if ld.runs.Count() == 1 {
 		run := ld.runs.At(0)
