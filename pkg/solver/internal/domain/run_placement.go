@@ -67,6 +67,17 @@ func (run RunPlacement) WithMaxStart(max int) (RunPlacement, bool) {
 	return run, true
 }
 
+func (run RunPlacement) WithMinStart(min int) (RunPlacement, bool) {
+	if min > run.MaxStart {
+		return run, false
+	}
+	if min <= run.MinStart {
+		return run, false
+	}
+	run.MinStart = min
+	return run, true
+}
+
 func (run RunPlacement) Equals(other RunPlacement) bool { return run == other }
 
 const MaxRuns = 16 // uint32, 32/2 = 16

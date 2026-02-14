@@ -121,3 +121,47 @@ func TestLineDomain_FixedByMask_Invalid(t *testing.T) {
 		t.Fatalf("domain should be unchanged: want %+v, got %+v", d, got)
 	}
 }
+
+func TestRunPlacement_WithMinStart(t *testing.T) {
+	run := domain.RunPlacement{MinStart: 2, MaxStart: 5, Len: 3}
+
+	got, changed := run.WithMinStart(4)
+	if !changed {
+		t.Fatal("want changed")
+	}
+	if got.MinStart != 4 || got.MaxStart != 5 || got.Len != 3 {
+		t.Fatalf("unexpected run: %+v", got)
+	}
+
+	if _, changed = run.WithMinStart(2); changed {
+		t.Fatal("want unchanged when min is same")
+	}
+	if _, changed = run.WithMinStart(1); changed {
+		t.Fatal("want unchanged when min is lower")
+	}
+	if _, changed = run.WithMinStart(6); changed {
+		t.Fatal("want unchanged when min exceeds max")
+	}
+}
+
+func TestRunPlacement_WithMaxStart(t *testing.T) {
+	run := domain.RunPlacement{MinStart: 2, MaxStart: 5, Len: 3}
+
+	got, changed := run.WithMaxStart(4)
+	if !changed {
+		t.Fatal("want changed")
+	}
+	if got.MinStart != 2 || got.MaxStart != 4 || got.Len != 3 {
+		t.Fatalf("unexpected run: %+v", got)
+	}
+
+	if _, changed = run.WithMaxStart(5); changed {
+		t.Fatal("want unchanged when max is same")
+	}
+	if _, changed = run.WithMaxStart(6); changed {
+		t.Fatal("want unchanged when max is higher")
+	}
+	if _, changed = run.WithMaxStart(1); changed {
+		t.Fatal("want unchanged when max below min")
+	}
+}
