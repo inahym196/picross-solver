@@ -40,6 +40,18 @@ func TestAllRuleV2(t *testing.T) {
 			bits.FromCells([]game.Cell{U, B, B, U, W, W}),
 		},
 		{
+			rule.EdgeExpansionRule{},
+			bits.FromCells([]game.Cell{U, U, U, U, B, U}),
+			[]int{3},
+			bits.FromCells([]game.Cell{W, W, U, B, B, U}),
+		},
+		{
+			rule.EdgeExpansionRule{},
+			bits.FromCells([]game.Cell{B, U, U, U, U, U, U, B}),
+			[]int{2, 1, 2},
+			bits.FromCells([]game.Cell{B, B, W, U, U, W, B, B}),
+		},
+		{
 			rule.ExactMatchBlackRule{},
 			bits.FromCells([]game.Cell{W, U, U, W, U, W}),
 			[]int{2, 1},
@@ -50,12 +62,6 @@ func TestAllRuleV2(t *testing.T) {
 			bits.FromCells([]game.Cell{U, B, B, U, B, U}),
 			[]int{2, 1},
 			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
-		},
-		{
-			rule.EdgeExpansionRule{},
-			bits.FromCells([]game.Cell{B, U, U, U, U, U, U, B}),
-			[]int{2, 1, 2},
-			bits.FromCells([]game.Cell{B, B, W, U, U, W, B, B}),
 		},
 	}
 
