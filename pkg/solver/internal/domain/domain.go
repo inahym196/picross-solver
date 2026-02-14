@@ -25,10 +25,13 @@ func NewLineDomain(lineLen int, hints []int) (LineDomain, error) {
 	start := 0
 	var err error = nil
 	for _, hint := range hints {
+		var starts bits.Bits
+		for s := start; s <= start+margin; s++ {
+			starts |= bits.Bits(1 << s)
+		}
 		runs, err = runs.Append(RunPlacement{
-			MinStart: start,
-			MaxStart: start + margin,
-			Len:      hint,
+			StartCandidates: starts,
+			Len:             hint,
 		})
 		if err != nil {
 			return LineDomain{}, err

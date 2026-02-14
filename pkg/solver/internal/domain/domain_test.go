@@ -99,12 +99,12 @@ func TestLineDomain_FixedByMask(t *testing.T) {
 	}
 
 	run0 := got.Run(0)
-	if run0.MinStart != 1 || run0.MaxStart != 1 {
+	if run0.StartCandidates != str2bit("010000") {
 		t.Fatalf("run0: want fixed at 1, got %+v", run0)
 	}
 
 	run1 := got.Run(1)
-	if run1.MinStart != 4 || run1.MaxStart != 4 {
+	if run1.StartCandidates != str2bit("000010") {
 		t.Fatalf("run1: want fixed at 4, got %+v", run1)
 	}
 }
@@ -123,13 +123,13 @@ func TestLineDomain_FixedByMask_Invalid(t *testing.T) {
 }
 
 func TestRunPlacement_WithMinStart(t *testing.T) {
-	run := domain.RunPlacement{MinStart: 2, MaxStart: 5, Len: 3}
+	run := domain.RunPlacement{StartCandidates: str2bit("00111100"), Len: 3} // starts: 2..5
 
 	got, changed := run.WithMinStart(4)
 	if !changed {
 		t.Fatal("want changed")
 	}
-	if got.MinStart != 4 || got.MaxStart != 5 || got.Len != 3 {
+	if got.StartCandidates != str2bit("00001100") || got.Len != 3 {
 		t.Fatalf("unexpected run: %+v", got)
 	}
 
@@ -137,7 +137,7 @@ func TestRunPlacement_WithMinStart(t *testing.T) {
 		t.Fatal("want unchanged when min is same")
 	}
 	if _, changed = run.WithMinStart(1); changed {
-		t.Fatal("want unchanged when min is lower")
+		t.Fatal("want unchanged when min does not narrow")
 	}
 	if _, changed = run.WithMinStart(6); changed {
 		t.Fatal("want unchanged when min exceeds max")
@@ -145,13 +145,13 @@ func TestRunPlacement_WithMinStart(t *testing.T) {
 }
 
 func TestRunPlacement_WithMaxStart(t *testing.T) {
-	run := domain.RunPlacement{MinStart: 2, MaxStart: 5, Len: 3}
+	run := domain.RunPlacement{StartCandidates: str2bit("00111100"), Len: 3} // starts: 2..5
 
 	got, changed := run.WithMaxStart(4)
 	if !changed {
 		t.Fatal("want changed")
 	}
-	if got.MinStart != 2 || got.MaxStart != 4 || got.Len != 3 {
+	if got.StartCandidates != str2bit("00111000") || got.Len != 3 {
 		t.Fatalf("unexpected run: %+v", got)
 	}
 

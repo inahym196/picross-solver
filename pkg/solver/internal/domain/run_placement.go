@@ -7,74 +7,81 @@ import (
 )
 
 type RunPlacement struct {
-	MinStart int
-	MaxStart int
-	Len      int
+	StartCandidates bits.Bits
+	Len             int
 }
 
-func (runs RunPlacement) String() string {
-	return fmt.Sprintf("{Len:%d Start:%d-%d}", runs.Len, runs.MinStart, runs.MaxStart)
+func (run RunPlacement) String() string {
+	return fmt.Sprintf("{Len:%d Starts:%b}", run.Len, run.StartCandidates)
+}
+
+func (run RunPlacement) minStart() int {
+	return run.StartCandidates.TailZeros()
+}
+
+func (run RunPlacement) maxStart() int {
+	return bits.Bits(0).UnitSize() - run.StartCandidates.HeadZeros() - 1
 }
 
 func (run RunPlacement) CoveredMask() bits.Bits {
-	end := run.MinStart + run.Len
-	if run.MaxStart >= end {
+
+	end := run.minStart() + run.Len
+	maxStart := run.maxStart()
+	if maxStart >= end {
 		return 0
 	}
 
 	var mask bits.Bits
-	for i := run.MaxStart; i < end; i++ {
+	for i := maxStart; i < end; i++ {
 		mask |= 1 << i
 	}
 	return mask
 }
 
 func (run RunPlacement) CoverableMask() bits.Bits {
-	var m bits.Bits
-	for i := run.MinStart; i < run.MaxStart+run.Len; i++ {
-		m |= bits.Bits(1 << i)
+	m := run.StartCandidates
+	maxStart := run.maxStart()
+	for i := range run.Len {
+		m |= bits.Bits(1 << (maxStart + i))
 	}
 	return m
 }
 
-func (run RunPlacement) CoversLeft(i int) bool {
-	return run.MinStart <= i && i < run.MinStart+run.Len
-}
-
-func (run RunPlacement) CoversRight(i int) bool {
-	return run.MaxStart <= i && i < run.MaxStart+run.Len
+func (run RunPlacement) Coverable(i int) bool {
+	return bits.Bits(1<<i)&run.CoverableMask() != 0
 }
 
 func (run RunPlacement) Fixed(start int) RunPlacement {
-	if !(run.MinStart <= start && start <= run.MaxStart) {
+	if bits.Bits(1<<start)&run.StartCandidates == 0 {
 		panic("invalid start")
 	}
-	return RunPlacement{
-		MinStart: start,
-		MaxStart: start,
-		Len:      run.Len,
-	}
+	run.StartCandidates = 1 << start
+	return run
 }
 
+// sc: low [00000111100000000000000000000000] upper, len: 3
+
 func (run RunPlacement) WithMaxStart(max int) (RunPlacement, bool) {
-	if max < run.MinStart {
+	if max < 0 {
 		return run, false
 	}
-	if max >= run.MaxStart {
+	next := run.StartCandidates & bits.Bits(1<<(max+1)-1)
+	if next == 0 || next == run.StartCandidates {
 		return run, false
 	}
-	run.MaxStart = max
+	run.StartCandidates = next
 	return run, true
 }
 
 func (run RunPlacement) WithMinStart(min int) (RunPlacement, bool) {
-	if min > run.MaxStart {
+	if min <= 0 {
 		return run, false
 	}
-	if min <= run.MinStart {
+	next := run.StartCandidates &^ bits.Bits(1<<min-1)
+	if next == 0 || next == run.StartCandidates {
 		return run, false
 	}
-	run.MinStart = min
+	run.StartCandidates = next
 	return run, true
 }
 
@@ -112,15 +119,17 @@ func (runs RunPlacements) FixedByMask(mask bits.Bits) (RunPlacements, bool) {
 
 	for i := range runs.count {
 		run := runs.runs[i]
-		start := cursor + (mask >> cursor).LeftZeros()
-		if start < run.MinStart || run.MaxStart < start {
+		start := cursor + (mask >> cursor).TailZeros()
+		if bits.Bits(1<<start)&run.StartCandidates == 0 {
 			return runs, false
 		}
 
-		if run.MinStart != start || run.MaxStart != start {
-			runs.runs[i] = run.Fixed(start)
-			changed = true
+		fixed := run.Fixed(start)
+		if fixed == run {
+			return runs, false
 		}
+		runs.runs[i] = fixed
+		changed = true
 		cursor = start + run.Len
 	}
 	return runs, changed
@@ -157,7 +166,7 @@ func (runs RunPlacements) UnCoverableMask(lineLen int) bits.Bits {
 
 func (runs RunPlacements) IsExactFit() bool {
 	for _, run := range runs.runs {
-		if run.MinStart != run.MaxStart {
+		if run.StartCandidates.OnesCount() != 1 {
 			return false
 		}
 	}

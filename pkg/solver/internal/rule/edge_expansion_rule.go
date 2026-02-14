@@ -13,9 +13,9 @@ func (r EdgeExpansionRule) leftNarrow(cells bits.Cells, d domain.LineDomain) (do
 	if cells.Blacks == 0 {
 		return d, false
 	}
-	mostLeftBlack := cells.Blacks.LeftZeros()
+	mostLeftBlack := cells.Blacks.TailZeros()
 	run := d.Run(0)
-	if !run.CoversLeft(mostLeftBlack) {
+	if !run.Coverable(mostLeftBlack) {
 		return d, false
 	}
 	run, changed := run.WithMaxStart(mostLeftBlack)
@@ -29,10 +29,10 @@ func (r EdgeExpansionRule) rightNarrow(cells bits.Cells, d domain.LineDomain) (d
 	if cells.Blacks == 0 {
 		return d, false
 	}
-	mostRightBlack := 31 - cells.Blacks.RightZeros()
+	mostRightBlack := 31 - cells.Blacks.HeadZeros()
 	last := d.RunsCount() - 1
 	run := d.Run(last)
-	if !run.CoversRight(mostRightBlack) {
+	if !run.Coverable(mostRightBlack) {
 		return d, false
 	}
 	minStart := mostRightBlack - run.Len + 1
