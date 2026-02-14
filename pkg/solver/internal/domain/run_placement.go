@@ -41,6 +41,10 @@ func (run RunPlacement) CoversLeft(i int) bool {
 	return run.MinStart <= i && i < run.MinStart+run.Len
 }
 
+func (run RunPlacement) CoversRight(i int) bool {
+	return run.MaxStart <= i && i < run.MaxStart+run.Len
+}
+
 func (run RunPlacement) Fixed(start int) RunPlacement {
 	if !(run.MinStart <= start && start <= run.MaxStart) {
 		panic("invalid start")

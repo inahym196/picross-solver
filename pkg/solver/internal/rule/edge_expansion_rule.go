@@ -9,8 +9,8 @@ type EdgeExpansionRule struct{}
 
 func (r EdgeExpansionRule) Name() string { return "EdgeExpansionRule" }
 
-func (r EdgeExpansionRule) Narrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
-	if d.RunsCount() < 1 {
+func (r EdgeExpansionRule) leftNarrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
+	if cells.Blacks == 0 {
 		return d, false
 	}
 	mostLeftBlack := cells.Blacks.LeftZeros()
@@ -18,6 +18,37 @@ func (r EdgeExpansionRule) Narrow(cells bits.Cells, d domain.LineDomain) (domain
 	if !run.CoversLeft(mostLeftBlack) {
 		return d, false
 	}
+	if run.MaxStart <= mostLeftBlack {
+		return d, false
+	}
 	run.MaxStart = mostLeftBlack
 	return d.Narrowed(0, run)
+}
+
+func (r EdgeExpansionRule) rightNarrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
+	if cells.Blacks == 0 {
+		return d, false
+	}
+	mostRightBlack := 31 - cells.Blacks.RightZeros()
+	last := d.RunsCount() - 1
+	run := d.Run(last)
+	if !run.CoversRight(mostRightBlack) {
+		return d, false
+	}
+	minStart := mostRightBlack - run.Len + 1
+	if minStart <= run.MinStart || run.MaxStart < minStart {
+		return d, false
+	}
+	run.MinStart = minStart
+	return d.Narrowed(last, run)
+}
+
+func (r EdgeExpansionRule) Narrow(cells bits.Cells, d domain.LineDomain) (domain.LineDomain, bool) {
+	if d.RunsCount() < 1 {
+		return d, false
+	}
+	var leftChanged, rightChanged bool
+	d, leftChanged = r.leftNarrow(cells, d)
+	d, rightChanged = r.rightNarrow(cells, d)
+	return d, leftChanged || rightChanged
 }

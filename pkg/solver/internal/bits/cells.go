@@ -15,6 +15,8 @@ func (b Bits) OnesCount() int { return bits.OnesCount32(uint32(b)) }
 
 func (b Bits) LeftZeros() int { return bits.TrailingZeros32(uint32(b)) }
 
+func (b Bits) RightZeros() int { return bits.LeadingZeros32(uint32(b)) }
+
 // ValueObject
 type Cells struct {
 	Len    int

@@ -69,3 +69,42 @@ func TestAllRuleV2(t *testing.T) {
 		})
 	}
 }
+
+func TestEdgeExpansionRule_RightNarrowTargetsLastRun(t *testing.T) {
+	d, err := domain.NewLineDomain(6, []int{1, 3})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cells := bits.FromCells([]game.Cell{U, U, U, U, B, U})
+	got, changed := rule.EdgeExpansionRule{}.Narrow(cells, d)
+	if !changed {
+		t.Fatal("want changed")
+	}
+
+	run0 := got.Run(0)
+	if !run0.Equals(domain.RunPlacement{MinStart: 0, MaxStart: 1, Len: 1}) {
+		t.Fatalf("run0 changed unexpectedly: %+v", run0)
+	}
+
+	run1 := got.Run(1)
+	if !run1.Equals(domain.RunPlacement{MinStart: 2, MaxStart: 3, Len: 3}) {
+		t.Fatalf("run1 not narrowed from right: %+v", run1)
+	}
+}
+
+func TestEdgeExpansionRule_NoBlackNoChange(t *testing.T) {
+	d, err := domain.NewLineDomain(6, []int{2})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cells := bits.FromCells([]game.Cell{U, U, U, U, U, U})
+	got, changed := rule.EdgeExpansionRule{}.Narrow(cells, d)
+	if changed {
+		t.Fatal("want unchanged")
+	}
+	if !got.Equals(d) {
+		t.Fatalf("domain changed unexpectedly: want %v, got %v", d, got)
+	}
+}
