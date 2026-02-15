@@ -1,27 +1,58 @@
 package domain
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
+)
+
+func starts(candidates ...int) bits.Bits {
+	var b bits.Bits
+	for _, c := range candidates {
+		b |= bits.Bits(1 << c)
+	}
+	return b
+}
 
 func TestNewLineDomain(t *testing.T) {
-	want := []RunPlacement{{0, 3, 2}, {3, 6, 1}}
-
-	d, _ := NewLineDomain(7, []int{2, 1})
-
-	if d.LineLen() != 7 {
-		t.Fatalf("lineLen: want 7, got %d", d.lineLen)
+	tests := []struct {
+		name       string
+		lineLen    int
+		hints      []int
+		wantRuns   []RunPlacement
+		wantLineLn int
+	}{
+		{
+			name:       "lineLen=7 hints=2,1",
+			lineLen:    7,
+			hints:      []int{2, 1},
+			wantLineLn: 7,
+			wantRuns: []RunPlacement{
+				{StartCandidates: starts(0, 1, 2, 3), Len: 2},
+				{StartCandidates: starts(3, 4, 5, 6), Len: 1},
+			},
+		},
 	}
 
-	if d.RunsCount() != len(want) {
-		t.Fatalf("runsCount: want %d, got %d", len(want), d.runs.Count())
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d, err := NewLineDomain(tt.lineLen, tt.hints)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	for i, wantRun := range want {
-		run, ok := d.runs.At(i)
-		if !ok {
-			t.Fatalf("out of range run[%d]", i)
-		}
-		if run != wantRun {
-			t.Errorf("run: want %+v, got %+v", wantRun, run)
-		}
+			if d.LineLen() != tt.wantLineLn {
+				t.Fatalf("lineLen: want %d, got %d", tt.wantLineLn, d.LineLen())
+			}
+			if d.RunsCount() != len(tt.wantRuns) {
+				t.Fatalf("runsCount: want %d, got %d", len(tt.wantRuns), d.RunsCount())
+			}
+
+			for i, wantRun := range tt.wantRuns {
+				if got := d.runs.At(i); got != wantRun {
+					t.Errorf("run[%d]: want %+v, got %+v", i, wantRun, got)
+				}
+			}
+		})
 	}
 }

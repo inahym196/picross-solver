@@ -88,3 +88,80 @@ func TestLineDomain_Project_Fits(t *testing.T) {
 		})
 	}
 }
+
+func TestLineDomain_FixedByMask(t *testing.T) {
+	d := mustNewLineDomain(6, []int{2, 1})
+	mask := str2bit("011010") // starts: 1, 4
+
+	got, changed := d.FixedByMask(mask)
+	if !changed {
+		t.Fatal("want changed")
+	}
+
+	run0 := got.Run(0)
+	if run0.StartCandidates != str2bit("010000") {
+		t.Fatalf("run0: want fixed at 1, got %+v", run0)
+	}
+
+	run1 := got.Run(1)
+	if run1.StartCandidates != str2bit("000010") {
+		t.Fatalf("run1: want fixed at 4, got %+v", run1)
+	}
+}
+
+func TestLineDomain_FixedByMask_Invalid(t *testing.T) {
+	d := mustNewLineDomain(6, []int{2, 1})
+	mask := str2bit("000011") // starts: 0, 0 (2nd run invalid)
+
+	got, changed := d.FixedByMask(mask)
+	if changed {
+		t.Fatal("want unchanged on invalid mask")
+	}
+	if !got.Equals(d) {
+		t.Fatalf("domain should be unchanged: want %+v, got %+v", d, got)
+	}
+}
+
+func TestRunPlacement_WithMinStart(t *testing.T) {
+	run := domain.RunPlacement{StartCandidates: str2bit("00111100"), Len: 3} // starts: 2..5
+
+	got, changed := run.WithMinStart(4)
+	if !changed {
+		t.Fatal("want changed")
+	}
+	if got.StartCandidates != str2bit("00001100") || got.Len != 3 {
+		t.Fatalf("unexpected run: %+v", got)
+	}
+
+	if _, changed = run.WithMinStart(2); changed {
+		t.Fatal("want unchanged when min is same")
+	}
+	if _, changed = run.WithMinStart(1); changed {
+		t.Fatal("want unchanged when min does not narrow")
+	}
+	if _, changed = run.WithMinStart(6); changed {
+		t.Fatal("want unchanged when min exceeds max")
+	}
+}
+
+func TestRunPlacement_WithMaxStart(t *testing.T) {
+	run := domain.RunPlacement{StartCandidates: str2bit("00111100"), Len: 3} // starts: 2..5
+
+	got, changed := run.WithMaxStart(4)
+	if !changed {
+		t.Fatal("want changed")
+	}
+	if got.StartCandidates != str2bit("00111000") || got.Len != 3 {
+		t.Fatalf("unexpected run: %+v", got)
+	}
+
+	if _, changed = run.WithMaxStart(5); changed {
+		t.Fatal("want unchanged when max is same")
+	}
+	if _, changed = run.WithMaxStart(6); changed {
+		t.Fatal("want unchanged when max is higher")
+	}
+	if _, changed = run.WithMaxStart(1); changed {
+		t.Fatal("want unchanged when max below min")
+	}
+}

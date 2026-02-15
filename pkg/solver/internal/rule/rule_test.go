@@ -18,29 +18,64 @@ const (
 	B = game.CellBlack
 )
 
+func mustNewLineDomain(len int, hint []int) domain.LineDomain {
+	d, err := domain.NewLineDomain(len, hint)
+	if err != nil {
+		panic(err)
+	}
+	return d
+}
+
 func TestAllRuleV2(t *testing.T) {
 	tests := []struct {
-		rule       solver.RuleV2
-		cells      bits.Cells
-		domainFunc func() (domain.LineDomain, error)
-		wantCells  bits.Cells
+		rule      solver.RuleV2
+		cells     bits.Cells
+		hint      []int
+		wantCells bits.Cells
 	}{
 		{
 			rule.EdgeExpansionRule{},
 			bits.FromCells([]game.Cell{U, B, U, U, U, U}),
-			func() (domain.LineDomain, error) { return domain.NewLineDomain(6, []int{3}) },
+			[]int{3},
 			bits.FromCells([]game.Cell{U, B, B, U, W, W}),
+		},
+		{
+			rule.EdgeExpansionRule{},
+			bits.FromCells([]game.Cell{U, U, U, U, B, U}),
+			[]int{3},
+			bits.FromCells([]game.Cell{W, W, U, B, B, U}),
+		},
+		{
+			rule.EdgeExpansionRule{},
+			bits.FromCells([]game.Cell{B, U, U, U, U, U, U, B}),
+			[]int{2, 1, 2},
+			bits.FromCells([]game.Cell{B, B, W, U, U, W, B, B}),
+		},
+		{
+			rule.ExactMatchBlackRule{},
+			bits.FromCells([]game.Cell{B, W, W, W, U}),
+			[]int{1, 1},
+			bits.FromCells([]game.Cell{B, W, W, W, B}),
+		},
+		{
+			rule.ExactMatchBlackRule{},
+			bits.FromCells([]game.Cell{W, U, U, W, U, W}),
+			[]int{2, 1},
+			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
+		},
+		{
+			rule.ExactMatchWhiteRule{},
+			bits.FromCells([]game.Cell{U, B, B, U, B, U}),
+			[]int{2, 1},
+			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
 		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%s-case%d", tt.rule.Name(), i), func(t *testing.T) {
-			domain, err := tt.domainFunc()
-			if err != nil {
-				t.Fatal(err)
-			}
 
-			got, changed := tt.rule.Narrow(tt.cells, domain)
+			d := mustNewLineDomain(tt.cells.Len, tt.hint)
+			got, changed := tt.rule.Narrow(tt.cells, d)
 			gotProject, err := got.Project()
 			if err != nil {
 				t.Fatal(err)

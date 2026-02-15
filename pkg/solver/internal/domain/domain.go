@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"iter"
 
 	"github.com/inahym196/picross-solver/pkg/solver/internal/bits"
 )
@@ -24,10 +25,13 @@ func NewLineDomain(lineLen int, hints []int) (LineDomain, error) {
 	start := 0
 	var err error = nil
 	for _, hint := range hints {
+		var starts bits.Bits
+		for s := start; s <= start+margin; s++ {
+			starts |= bits.Bits(1 << s)
+		}
 		runs, err = runs.Append(RunPlacement{
-			MinStart: start,
-			MaxStart: start + margin,
-			Len:      hint,
+			StartCandidates: starts,
+			Len:             hint,
 		})
 		if err != nil {
 			return LineDomain{}, err
@@ -40,9 +44,9 @@ func NewLineDomain(lineLen int, hints []int) (LineDomain, error) {
 func (ld LineDomain) String() string {
 	return fmt.Sprintf("{lineLen:%d runs:%v}", ld.lineLen, ld.runs)
 }
-func (ld LineDomain) LineLen() int                   { return ld.lineLen }
-func (ld LineDomain) RunsCount() int                 { return ld.runs.Count() }
-func (ld LineDomain) Run(i int) (RunPlacement, bool) { return ld.runs.At(i) }
+func (ld LineDomain) LineLen() int           { return ld.lineLen }
+func (ld LineDomain) RunsCount() int         { return ld.runs.Count() }
+func (ld LineDomain) Run(i int) RunPlacement { return ld.runs.At(i) }
 func (ld LineDomain) Equals(other LineDomain) bool {
 	return ld.lineLen == other.lineLen && ld.runs.Equals(other.runs)
 }
@@ -50,7 +54,7 @@ func (ld LineDomain) Equals(other LineDomain) bool {
 func (ld LineDomain) Project() (bits.Cells, error) {
 
 	if ld.runs.Count() == 1 {
-		run, _ := ld.runs.At(0)
+		run := ld.runs.At(0)
 		switch run.Len {
 		case 0:
 			return bits.NewCellsWithWhiteMasked(ld.lineLen), nil
@@ -68,28 +72,41 @@ func (ld LineDomain) Project() (bits.Cells, error) {
 	return c, nil
 }
 
-func (ld LineDomain) NarrowedRunMax(i int, maxStart int) (LineDomain, bool) {
-	run, ok := ld.runs.At(i)
-	if !ok {
-		return ld, false
-	}
-	newRun, changed := run.WithMaxStart(maxStart)
+func (ld LineDomain) Narrowed(i int, run RunPlacement) (LineDomain, bool) {
+	newRuns, changed := ld.runs.Replaced(i, run)
 	if !changed {
 		return ld, false
 	}
-	newRuns, ok := ld.runs.Replaced(i, newRun)
-	if !ok || newRun.Equals(run) {
+	ld.runs = newRuns
+	return ld, true
+}
+
+func (ld LineDomain) FixedByMask(mask bits.Bits) (LineDomain, bool) {
+	newRuns, changed := ld.runs.FixedByMask(mask)
+	if !changed {
 		return ld, false
 	}
-	return LineDomain{ld.lineLen, newRuns}, true
+	ld.runs = newRuns
+	return ld, true
 }
 
 func (ld LineDomain) IsDeterministic() bool {
 	if ld.runs.Count() == 1 {
-		run, _ := ld.runs.At(0)
+		run := ld.runs.At(0)
 		if run.Len == 0 || run.Len == ld.lineLen {
 			return true
 		}
 	}
 	return ld.runs.IsExactFit()
+}
+
+func (ld LineDomain) AllRuns() iter.Seq2[int, RunPlacement] {
+	return func(yield func(int, RunPlacement) bool) {
+		for i := range ld.runs.count {
+			run := ld.runs.At(i)
+			if !yield(i, run) {
+				return
+			}
+		}
+	}
 }
