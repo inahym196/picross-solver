@@ -53,6 +53,12 @@ func TestAllRuleV2(t *testing.T) {
 		},
 		{
 			rule.ExactMatchBlackRule{},
+			bits.FromCells([]game.Cell{B, W, W, W, U}),
+			[]int{1, 1},
+			bits.FromCells([]game.Cell{B, W, W, W, B}),
+		},
+		{
+			rule.ExactMatchBlackRule{},
 			bits.FromCells([]game.Cell{W, U, U, W, U, W}),
 			[]int{2, 1},
 			bits.FromCells([]game.Cell{W, B, B, W, B, W}),
